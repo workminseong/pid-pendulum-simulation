@@ -1,669 +1,688 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PID 제어 알고리즘에 따른 진자의 안정화 비교</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
-      background: #10131a;
-      color: #f2f2f2;
-      overflow: hidden;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: #0f172a;
+      color: white;
     }
 
     header {
-      padding: 14px 24px;
-      background: #181d28;
-      border-bottom: 1px solid #2d3444;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 20px;
+      background: #111827;
+      text-align: center;
+      border-bottom: 1px solid #334155;
     }
 
     header h1 {
       margin: 0;
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 26px;
     }
 
-    header span {
-      color: #9aa4b8;
-      font-size: 14px;
-    }
-
-    main {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      height: calc(100vh - 58px);
-    }
-
-    .panel {
-      background: #151a24;
-      border-right: 1px solid #2d3444;
-      padding: 18px;
-      overflow-y: auto;
-    }
-
-    .panel h2 {
-      font-size: 18px;
-      margin: 0 0 12px;
-    }
-
-    .control-group {
-      margin-bottom: 20px;
-      padding: 14px;
-      background: #1d2330;
-      border-radius: 12px;
-      border: 1px solid #30384a;
-    }
-
-    .control-group h3 {
-      margin: 0 0 12px;
+    header p {
+      margin: 8px 0 0;
+      color: #cbd5e1;
       font-size: 15px;
-      color: #d6dcff;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: calc(100vh - 90px);
+    }
+
+    .control-panel {
+      padding: 20px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+    }
+
+    .control-box {
+      margin-bottom: 18px;
+      padding: 15px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+    }
+
+    .control-box h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #e0f2fe;
     }
 
     label {
       display: block;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #c7cedd;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #cbd5e1;
     }
 
     input[type="range"] {
       width: 100%;
-      margin-top: 5px;
+      margin-top: 6px;
     }
 
     .value {
+      color: #86efac;
+      font-weight: bold;
       float: right;
-      color: #7ee787;
-      font-weight: 600;
     }
 
     button {
       width: 100%;
-      margin-top: 8px;
-      padding: 10px 12px;
+      padding: 11px;
+      margin-top: 9px;
       border: none;
       border-radius: 10px;
-      background: #334155;
+      background: #2563eb;
       color: white;
-      font-weight: 600;
+      font-weight: bold;
       cursor: pointer;
+      font-size: 14px;
     }
 
     button:hover {
-      background: #475569;
-    }
-
-    .danger {
-      background: #7f1d1d;
-    }
-
-    .danger:hover {
-      background: #991b1b;
-    }
-
-    .blue {
       background: #1d4ed8;
     }
 
-    .blue:hover {
-      background: #2563eb;
+    .danger {
+      background: #dc2626;
+    }
+
+    .danger:hover {
+      background: #b91c1c;
     }
 
     .green {
-      background: #166534;
+      background: #16a34a;
     }
 
     .green:hover {
       background: #15803d;
     }
 
-    .simulation-area {
+    .simulation {
       display: grid;
-      grid-template-rows: 1fr 260px;
-      height: 100%;
+      grid-template-rows: 1fr 280px;
+      height: calc(100vh - 90px);
     }
 
     canvas {
-      display: block;
       width: 100%;
       height: 100%;
-      background: #0f172a;
+      display: block;
     }
 
-    .info-box {
+    #simCanvas {
+      background: #020617;
+    }
+
+    #graphCanvas {
+      background: #111827;
+      border-top: 1px solid #334155;
+    }
+
+    .description {
       font-size: 13px;
       line-height: 1.6;
       color: #cbd5e1;
     }
 
     .legend {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
       margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.8;
     }
 
-    .legend div {
-      background: #111827;
-      border: 1px solid #263246;
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 12px;
-    }
-
-    .dot {
+    .color-box {
       display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+      width: 12px;
+      height: 12px;
       margin-right: 6px;
+      border-radius: 50%;
     }
 
-    .gray { background: #94a3b8; }
-    .orange { background: #f97316; }
-    .cyan { background: #22d3ee; }
-    .pink { background: #f472b6; }
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .simulation {
+        height: 750px;
+      }
+
+      .control-panel {
+        border-right: none;
+        border-bottom: 1px solid #334155;
+      }
+    }
   </style>
 </head>
+
 <body>
   <header>
     <h1>PID 제어 알고리즘에 따른 진자의 안정화 비교</h1>
-    <span>무제어 · P 제어 · PD 제어 · PID 제어 비교 시뮬레이션</span>
+    <p>무제어, P 제어, PD 제어, PID 제어 방식의 진자 안정화 성능을 비교하는 시뮬레이션</p>
   </header>
 
-  <main>
-    <aside class="panel">
-      <h2>제어 설정</h2>
-
-      <div class="control-group">
-        <h3>PID 계수</h3>
+  <div class="container">
+    <aside class="control-panel">
+      <div class="control-box">
+        <h2>PID 계수 설정</h2>
 
         <label>
           Kp 비례 제어
-          <span class="value" id="kpValue">35</span>
+          <span class="value" id="kpText">35</span>
         </label>
-        <input id="kpSlider" type="range" min="0" max="100" step="1" value="35" />
+        <input type="range" id="kp" min="0" max="100" step="1" value="35">
 
         <label>
           Ki 적분 제어
-          <span class="value" id="kiValue">4</span>
+          <span class="value" id="kiText">4</span>
         </label>
-        <input id="kiSlider" type="range" min="0" max="30" step="0.5" value="4" />
+        <input type="range" id="ki" min="0" max="30" step="0.5" value="4">
 
         <label>
           Kd 미분 제어
-          <span class="value" id="kdValue">12</span>
+          <span class="value" id="kdText">12</span>
         </label>
-        <input id="kdSlider" type="range" min="0" max="50" step="0.5" value="12" />
+        <input type="range" id="kd" min="0" max="50" step="0.5" value="12">
       </div>
 
-      <div class="control-group">
-        <h3>시뮬레이션 조건</h3>
+      <div class="control-box">
+        <h2>시뮬레이션 조건</h2>
 
         <label>
           초기 각도
-          <span class="value" id="angleValue">25°</span>
+          <span class="value" id="angleText">25°</span>
         </label>
-        <input id="angleSlider" type="range" min="-80" max="80" step="1" value="25" />
+        <input type="range" id="startAngle" min="-70" max="70" step="1" value="25">
 
         <label>
-          감쇠 계수
-          <span class="value" id="dampingValue">0.12</span>
+          마찰 / 감쇠
+          <span class="value" id="dampingText">0.12</span>
         </label>
-        <input id="dampingSlider" type="range" min="0" max="1" step="0.01" value="0.12" />
+        <input type="range" id="damping" min="0" max="1" step="0.01" value="0.12">
 
         <label>
           외란 세기
-          <span class="value" id="disturbValue">3.0</span>
+          <span class="value" id="pushText">3.0</span>
         </label>
-        <input id="disturbSlider" type="range" min="0" max="8" step="0.1" value="3" />
+        <input type="range" id="pushPower" min="0" max="8" step="0.1" value="3">
       </div>
 
-      <div class="control-group">
-        <h3>실행</h3>
-        <button class="blue" id="pauseBtn">일시정지</button>
-        <button class="green" id="disturbBtn">외란 주기</button>
+      <div class="control-box">
+        <h2>실행 조작</h2>
+        <button id="pauseBtn">일시정지</button>
+        <button class="green" id="pushBtn">외란 주기</button>
         <button class="danger" id="resetBtn">초기화</button>
       </div>
 
-      <div class="control-group info-box">
-        <h3>해석 기준</h3>
-        <p>
-          목표 각도는 <b>0°</b>이다. 진자가 목표 각도에 빠르게 도달하고,
-          흔들림이 작으며, 다시 안정 상태를 유지할수록 좋은 제어라고 볼 수 있다.
-        </p>
-        <p>
-          P 제어는 빠르게 반응하지만 흔들림이 클 수 있고,
-          D 제어는 흔들림을 줄이며,
-          I 제어는 남아 있는 오차를 줄이는 역할을 한다.
-        </p>
-
+      <div class="control-box description">
+        <h2>색상 설명</h2>
         <div class="legend">
-          <div><span class="dot gray"></span>무제어</div>
-          <div><span class="dot orange"></span>P 제어</div>
-          <div><span class="dot cyan"></span>PD 제어</div>
-          <div><span class="dot pink"></span>PID 제어</div>
+          <div><span class="color-box" style="background:#94a3b8;"></span>무제어</div>
+          <div><span class="color-box" style="background:#fb923c;"></span>P 제어</div>
+          <div><span class="color-box" style="background:#38bdf8;"></span>PD 제어</div>
+          <div><span class="color-box" style="background:#f472b6;"></span>PID 제어</div>
         </div>
+        <p>
+          목표 각도는 0도이다. 각도가 빠르게 0도에 가까워지고 흔들림이 작을수록 안정화 성능이 좋다고 볼 수 있다.
+        </p>
       </div>
     </aside>
 
-    <section class="simulation-area">
+    <main class="simulation">
       <canvas id="simCanvas"></canvas>
       <canvas id="graphCanvas"></canvas>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script>
-    const simCanvas = document.getElementById("simCanvas");
-    const graphCanvas = document.getElementById("graphCanvas");
-    const ctx = simCanvas.getContext("2d");
-    const gctx = graphCanvas.getContext("2d");
+    var simCanvas = document.getElementById("simCanvas");
+    var graphCanvas = document.getElementById("graphCanvas");
+    var ctx = simCanvas.getContext("2d");
+    var gctx = graphCanvas.getContext("2d");
 
-    const kpSlider = document.getElementById("kpSlider");
-    const kiSlider = document.getElementById("kiSlider");
-    const kdSlider = document.getElementById("kdSlider");
-    const angleSlider = document.getElementById("angleSlider");
-    const dampingSlider = document.getElementById("dampingSlider");
-    const disturbSlider = document.getElementById("disturbSlider");
+    var kpInput = document.getElementById("kp");
+    var kiInput = document.getElementById("ki");
+    var kdInput = document.getElementById("kd");
+    var startAngleInput = document.getElementById("startAngle");
+    var dampingInput = document.getElementById("damping");
+    var pushPowerInput = document.getElementById("pushPower");
 
-    const kpValue = document.getElementById("kpValue");
-    const kiValue = document.getElementById("kiValue");
-    const kdValue = document.getElementById("kdValue");
-    const angleValue = document.getElementById("angleValue");
-    const dampingValue = document.getElementById("dampingValue");
-    const disturbValue = document.getElementById("disturbValue");
+    var kpText = document.getElementById("kpText");
+    var kiText = document.getElementById("kiText");
+    var kdText = document.getElementById("kdText");
+    var angleText = document.getElementById("angleText");
+    var dampingText = document.getElementById("dampingText");
+    var pushText = document.getElementById("pushText");
 
-    const pauseBtn = document.getElementById("pauseBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const disturbBtn = document.getElementById("disturbBtn");
+    var pauseBtn = document.getElementById("pauseBtn");
+    var pushBtn = document.getElementById("pushBtn");
+    var resetBtn = document.getElementById("resetBtn");
 
-    let paused = false;
-    let lastTime = performance.now();
-    let simTime = 0;
+    var paused = false;
+    var lastTime = 0;
+    var time = 0;
 
-    const G = 9.81;
-    const L = 1.4;
-    const M = 1.0;
-    const MAX_TORQUE = 35;
-    const STABLE_THRESHOLD = 2 * Math.PI / 180;
+    var gravity = 9.81;
+    var length = 1.4;
+    var mass = 1.0;
+    var maxTorque = 35;
 
     function resizeCanvas() {
-      simCanvas.width = simCanvas.clientWidth * devicePixelRatio;
-      simCanvas.height = simCanvas.clientHeight * devicePixelRatio;
-      graphCanvas.width = graphCanvas.clientWidth * devicePixelRatio;
-      graphCanvas.height = graphCanvas.clientHeight * devicePixelRatio;
-
-      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-      gctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      simCanvas.width = simCanvas.clientWidth;
+      simCanvas.height = simCanvas.clientHeight;
+      graphCanvas.width = graphCanvas.clientWidth;
+      graphCanvas.height = graphCanvas.clientHeight;
     }
 
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    class Pendulum {
-      constructor(name, color, type) {
-        this.name = name;
-        this.color = color;
-        this.type = type;
-        this.reset();
-      }
+    function degreeToRadian(deg) {
+      return deg * Math.PI / 180;
+    }
 
-      reset() {
-        this.theta = Number(angleSlider.value) * Math.PI / 180;
-        this.omega = 0;
-        this.integral = 0;
-        this.prevError = 0;
-        this.history = [];
-        this.maxError = Math.abs(this.theta);
-        this.stableTime = null;
-        this.stableCounter = 0;
-      }
+    function radianToDegree(rad) {
+      return rad * 180 / Math.PI;
+    }
 
-      getGain() {
-        const kp = Number(kpSlider.value);
-        const ki = Number(kiSlider.value);
-        const kd = Number(kdSlider.value);
+    function limit(value, min, max) {
+      if (value < min) return min;
+      if (value > max) return max;
+      return value;
+    }
 
-        if (this.type === "NONE") return { kp: 0, ki: 0, kd: 0 };
-        if (this.type === "P") return { kp, ki: 0, kd: 0 };
-        if (this.type === "PD") return { kp, ki: 0, kd };
-        if (this.type === "PID") return { kp, ki, kd };
+    function Pendulum(name, color, mode) {
+      this.name = name;
+      this.color = color;
+      this.mode = mode;
+      this.theta = 0;
+      this.omega = 0;
+      this.integral = 0;
+      this.previousError = 0;
+      this.history = [];
+      this.maxError = 0;
+      this.stableTime = null;
+      this.stableCounter = 0;
+      this.reset();
+    }
 
+    Pendulum.prototype.reset = function () {
+      this.theta = degreeToRadian(Number(startAngleInput.value));
+      this.omega = 0;
+      this.integral = 0;
+      this.previousError = 0;
+      this.history = [];
+      this.maxError = Math.abs(this.theta);
+      this.stableTime = null;
+      this.stableCounter = 0;
+    };
+
+    Pendulum.prototype.getPID = function () {
+      var kp = Number(kpInput.value);
+      var ki = Number(kiInput.value);
+      var kd = Number(kdInput.value);
+
+      if (this.mode === "NONE") {
         return { kp: 0, ki: 0, kd: 0 };
       }
 
-      update(dt) {
-        const damping = Number(dampingSlider.value);
-
-        const target = 0;
-        const error = target - this.theta;
-        this.integral += error * dt;
-
-        // 적분항이 지나치게 커지는 것을 막음
-        this.integral = clamp(this.integral, -2, 2);
-
-        const derivative = (error - this.prevError) / dt;
-        this.prevError = error;
-
-        const { kp, ki, kd } = this.getGain();
-
-        let torque = kp * error + ki * this.integral + kd * derivative;
-        torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
-
-        // 진자 운동 방정식
-        // theta'' = -(g / L) sin(theta) - damping * omega + torque / (mL^2)
-        const alpha =
-          -(G / L) * Math.sin(this.theta)
-          - damping * this.omega
-          + torque / (M * L * L);
-
-        this.omega += alpha * dt;
-        this.theta += this.omega * dt;
-
-        this.maxError = Math.max(this.maxError, Math.abs(this.theta));
-
-        if (Math.abs(this.theta) < STABLE_THRESHOLD && Math.abs(this.omega) < 0.05) {
-          this.stableCounter += dt;
-          if (this.stableCounter > 1.0 && this.stableTime === null) {
-            this.stableTime = simTime;
-          }
-        } else {
-          this.stableCounter = 0;
-        }
-
-        this.history.push(this.theta * 180 / Math.PI);
-        if (this.history.length > 700) {
-          this.history.shift();
-        }
+      if (this.mode === "P") {
+        return { kp: kp, ki: 0, kd: 0 };
       }
 
-      disturb(strength) {
-        const direction = Math.random() > 0.5 ? 1 : -1;
-        this.omega += direction * strength;
+      if (this.mode === "PD") {
+        return { kp: kp, ki: 0, kd: kd };
       }
-    }
 
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
+      return { kp: kp, ki: ki, kd: kd };
+    };
 
-    const pendulums = [
+    Pendulum.prototype.update = function (dt) {
+      var target = 0;
+      var error = target - this.theta;
+
+      this.integral += error * dt;
+      this.integral = limit(this.integral, -2, 2);
+
+      var derivative = (error - this.previousError) / dt;
+      this.previousError = error;
+
+      var pid = this.getPID();
+
+      var torque =
+        pid.kp * error +
+        pid.ki * this.integral +
+        pid.kd * derivative;
+
+      torque = limit(torque, -maxTorque, maxTorque);
+
+      var damping = Number(dampingInput.value);
+
+      var angularAcceleration =
+        -(gravity / length) * Math.sin(this.theta)
+        - damping * this.omega
+        + torque / (mass * length * length);
+
+      this.omega += angularAcceleration * dt;
+      this.theta += this.omega * dt;
+
+      if (Math.abs(this.theta) > this.maxError) {
+        this.maxError = Math.abs(this.theta);
+      }
+
+      if (Math.abs(this.theta) < degreeToRadian(2) && Math.abs(this.omega) < 0.05) {
+        this.stableCounter += dt;
+        if (this.stableCounter > 1.0 && this.stableTime === null) {
+          this.stableTime = time;
+        }
+      } else {
+        this.stableCounter = 0;
+      }
+
+      this.history.push(radianToDegree(this.theta));
+      if (this.history.length > 600) {
+        this.history.shift();
+      }
+    };
+
+    Pendulum.prototype.push = function (power) {
+      var direction = Math.random() > 0.5 ? 1 : -1;
+      this.omega += direction * power;
+    };
+
+    var pendulums = [
       new Pendulum("무제어", "#94a3b8", "NONE"),
-      new Pendulum("P 제어", "#f97316", "P"),
-      new Pendulum("PD 제어", "#22d3ee", "PD"),
-      new Pendulum("PID 제어", "#f472b6", "PID"),
+      new Pendulum("P 제어", "#fb923c", "P"),
+      new Pendulum("PD 제어", "#38bdf8", "PD"),
+      new Pendulum("PID 제어", "#f472b6", "PID")
     ];
 
-    function resetAll() {
-      simTime = 0;
-      pendulums.forEach(p => p.reset());
+    function updateLabels() {
+      kpText.textContent = kpInput.value;
+      kiText.textContent = kiInput.value;
+      kdText.textContent = kdInput.value;
+      angleText.textContent = startAngleInput.value + "°";
+      dampingText.textContent = dampingInput.value;
+      pushText.textContent = pushPowerInput.value;
     }
 
-    function updateTextValues() {
-      kpValue.textContent = kpSlider.value;
-      kiValue.textContent = kiSlider.value;
-      kdValue.textContent = kdSlider.value;
-      angleValue.textContent = angleSlider.value + "°";
-      dampingValue.textContent = dampingSlider.value;
-      disturbValue.textContent = disturbSlider.value;
-    }
+    kpInput.addEventListener("input", updateLabels);
+    kiInput.addEventListener("input", updateLabels);
+    kdInput.addEventListener("input", updateLabels);
+    dampingInput.addEventListener("input", updateLabels);
+    pushPowerInput.addEventListener("input", updateLabels);
 
-    [kpSlider, kiSlider, kdSlider, angleSlider, dampingSlider, disturbSlider].forEach(slider => {
-      slider.addEventListener("input", updateTextValues);
+    startAngleInput.addEventListener("input", function () {
+      updateLabels();
     });
 
-    angleSlider.addEventListener("change", resetAll);
+    startAngleInput.addEventListener("change", function () {
+      resetSimulation();
+    });
 
-    pauseBtn.addEventListener("click", () => {
+    pauseBtn.addEventListener("click", function () {
       paused = !paused;
       pauseBtn.textContent = paused ? "다시 실행" : "일시정지";
     });
 
-    resetBtn.addEventListener("click", resetAll);
-
-    disturbBtn.addEventListener("click", () => {
-      const strength = Number(disturbSlider.value);
-      pendulums.forEach(p => p.disturb(strength));
+    resetBtn.addEventListener("click", function () {
+      resetSimulation();
     });
 
-    function drawPendulum(p, index, total) {
-      const width = simCanvas.clientWidth;
-      const height = simCanvas.clientHeight;
+    pushBtn.addEventListener("click", function () {
+      var power = Number(pushPowerInput.value);
+      for (var i = 0; i < pendulums.length; i++) {
+        pendulums[i].push(power);
+      }
+    });
 
-      const sectionWidth = width / total;
-      const cx = sectionWidth * index + sectionWidth / 2;
-      const cy = 120;
-      const pixelLength = Math.min(220, height * 0.45);
+    function resetSimulation() {
+      time = 0;
+      for (var i = 0; i < pendulums.length; i++) {
+        pendulums[i].reset();
+      }
+    }
 
-      const bobX = cx + pixelLength * Math.sin(p.theta);
-      const bobY = cy + pixelLength * Math.cos(p.theta);
+    function drawBackground() {
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, simCanvas.width, simCanvas.height);
 
-      ctx.save();
-
-      // 영역 카드
-      ctx.fillStyle = "#111827";
-      ctx.strokeStyle = "#273244";
-      roundRect(ctx, cx - sectionWidth * 0.43, 35, sectionWidth * 0.86, height - 70, 18);
-      ctx.fill();
-      ctx.stroke();
-
-      // 기준선
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
       ctx.lineWidth = 1;
+
+      for (var x = 0; x < simCanvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, simCanvas.height);
+        ctx.stroke();
+      }
+
+      for (var y = 0; y < simCanvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(simCanvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawPendulum(p, index) {
+      var count = pendulums.length;
+      var areaWidth = simCanvas.width / count;
+      var centerX = areaWidth * index + areaWidth / 2;
+      var centerY = 95;
+      var rodLength = Math.min(230, simCanvas.height * 0.45);
+
+      var bobX = centerX + rodLength * Math.sin(p.theta);
+      var bobY = centerY + rodLength * Math.cos(p.theta);
+
+      var cardX = areaWidth * index + 12;
+      var cardY = 25;
+      var cardW = areaWidth - 24;
+      var cardH = simCanvas.height - 50;
+
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+      ctx.strokeRect(cardX, cardY, cardW, cardH);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx, cy + pixelLength + 30);
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX, centerY + rodLength + 20);
       ctx.stroke();
 
-      // 피벗
-      ctx.fillStyle = "#e5e7eb";
-      ctx.beginPath();
-      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 막대
       ctx.strokeStyle = p.color;
       ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
+      ctx.moveTo(centerX, centerY);
       ctx.lineTo(bobX, bobY);
       ctx.stroke();
 
-      // 추
+      ctx.fillStyle = "#e5e7eb";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 7, 0, Math.PI * 2);
+      ctx.fill();
+
       ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(bobX, bobY, 20, 0, Math.PI * 2);
       ctx.fill();
 
-      // 추 하이라이트
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
       ctx.beginPath();
       ctx.arc(bobX - 7, bobY - 7, 6, 0, Math.PI * 2);
       ctx.fill();
 
-      const degree = p.theta * 180 / Math.PI;
-      const stableText = p.stableTime === null ? "미도달" : p.stableTime.toFixed(2) + "초";
-      const maxError = p.maxError * 180 / Math.PI;
+      var degree = radianToDegree(p.theta);
+      var maxDegree = radianToDegree(p.maxError);
+      var stableText = p.stableTime === null ? "미도달" : p.stableTime.toFixed(2) + "초";
 
-      ctx.fillStyle = "#f8fafc";
-      ctx.font = "bold 18px Arial";
+      ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
-      ctx.fillText(p.name, cx, height - 120);
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(p.name, centerX, simCanvas.height - 125);
 
-      ctx.font = "13px Arial";
+      ctx.font = "14px Arial";
       ctx.fillStyle = "#cbd5e1";
-      ctx.fillText(`현재 각도: ${degree.toFixed(2)}°`, cx, height - 92);
-      ctx.fillText(`최대 오차: ${maxError.toFixed(2)}°`, cx, height - 70);
-      ctx.fillText(`안정화 시간: ${stableText}`, cx, height - 48);
+      ctx.fillText("현재 각도: " + degree.toFixed(2) + "°", centerX, simCanvas.height - 95);
+      ctx.fillText("최대 오차: " + maxDegree.toFixed(2) + "°", centerX, simCanvas.height - 70);
+      ctx.fillText("안정화 시간: " + stableText, centerX, simCanvas.height - 45);
 
-      if (p.stableTime !== null) {
-        ctx.fillStyle = "#22c55e";
-        ctx.fillText("안정화 성공", cx, height - 26);
-      } else {
+      if (p.stableTime === null) {
         ctx.fillStyle = "#facc15";
-        ctx.fillText("안정화 진행 중", cx, height - 26);
+        ctx.fillText("안정화 진행 중", centerX, simCanvas.height - 22);
+      } else {
+        ctx.fillStyle = "#4ade80";
+        ctx.fillText("안정화 성공", centerX, simCanvas.height - 22);
       }
-
-      ctx.restore();
     }
 
     function drawSimulation() {
-      const width = simCanvas.clientWidth;
-      const height = simCanvas.clientHeight;
+      drawBackground();
 
-      ctx.clearRect(0, 0, width, height);
-
-      ctx.fillStyle = "#0f172a";
-      ctx.fillRect(0, 0, width, height);
-
-      // 배경 격자
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
-      ctx.lineWidth = 1;
-
-      for (let x = 0; x < width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+      for (var i = 0; i < pendulums.length; i++) {
+        drawPendulum(pendulums[i], i);
       }
-
-      for (let y = 0; y < height; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
-
-      pendulums.forEach((p, i) => drawPendulum(p, i, pendulums.length));
 
       ctx.fillStyle = "#e2e8f0";
-      ctx.font = "14px Arial";
       ctx.textAlign = "left";
-      ctx.fillText(`시뮬레이션 시간: ${simTime.toFixed(2)}초`, 20, 28);
+      ctx.font = "14px Arial";
+      ctx.fillText("시간: " + time.toFixed(2) + "초", 18, 22);
     }
 
     function drawGraph() {
-      const width = graphCanvas.clientWidth;
-      const height = graphCanvas.clientHeight;
-
-      gctx.clearRect(0, 0, width, height);
       gctx.fillStyle = "#111827";
-      gctx.fillRect(0, 0, width, height);
+      gctx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
 
-      const padding = 42;
-      const graphW = width - padding * 2;
-      const graphH = height - padding * 2;
-      const midY = padding + graphH / 2;
+      var padding = 45;
+      var w = graphCanvas.width - padding * 2;
+      var h = graphCanvas.height - padding * 2;
+      var midY = padding + h / 2;
 
-      // 제목
-      gctx.fillStyle = "#f8fafc";
-      gctx.font = "bold 15px Arial";
+      gctx.fillStyle = "#ffffff";
       gctx.textAlign = "left";
-      gctx.fillText("각도 변화 그래프", 18, 24);
+      gctx.font = "bold 16px Arial";
+      gctx.fillText("각도 변화 그래프", 18, 25);
 
-      // 축
-      gctx.strokeStyle = "rgba(255,255,255,0.25)";
+      gctx.strokeStyle = "#475569";
       gctx.lineWidth = 1;
       gctx.beginPath();
       gctx.moveTo(padding, padding);
-      gctx.lineTo(padding, padding + graphH);
-      gctx.lineTo(padding + graphW, padding + graphH);
+      gctx.lineTo(padding, padding + h);
+      gctx.lineTo(padding + w, padding + h);
       gctx.stroke();
 
-      // 0도 기준선
       gctx.strokeStyle = "rgba(255,255,255,0.35)";
       gctx.beginPath();
       gctx.moveTo(padding, midY);
-      gctx.lineTo(padding + graphW, midY);
+      gctx.lineTo(padding + w, midY);
       gctx.stroke();
 
-      // 보조선
-      gctx.strokeStyle = "rgba(255,255,255,0.08)";
-      for (let i = -60; i <= 60; i += 20) {
-        const y = midY - (i / 90) * (graphH / 2);
+      for (var angle = -60; angle <= 60; angle += 20) {
+        var y = midY - angle / 90 * (h / 2);
+
+        gctx.strokeStyle = "rgba(255,255,255,0.08)";
         gctx.beginPath();
         gctx.moveTo(padding, y);
-        gctx.lineTo(padding + graphW, y);
+        gctx.lineTo(padding + w, y);
         gctx.stroke();
 
         gctx.fillStyle = "#94a3b8";
-        gctx.font = "11px Arial";
         gctx.textAlign = "right";
-        gctx.fillText(i + "°", padding - 8, y + 4);
+        gctx.font = "11px Arial";
+        gctx.fillText(angle + "°", padding - 8, y + 4);
       }
 
-      pendulums.forEach(p => {
-        if (p.history.length < 2) return;
+      for (var i = 0; i < pendulums.length; i++) {
+        var p = pendulums[i];
+
+        if (p.history.length < 2) {
+          continue;
+        }
 
         gctx.strokeStyle = p.color;
         gctx.lineWidth = 2;
         gctx.beginPath();
 
-        p.history.forEach((angle, i) => {
-          const x = padding + (i / 700) * graphW;
-          const y = midY - (angle / 90) * (graphH / 2);
+        for (var j = 0; j < p.history.length; j++) {
+          var x = padding + j / 600 * w;
+          var y = midY - p.history[j] / 90 * (h / 2);
 
-          if (i === 0) gctx.moveTo(x, y);
-          else gctx.lineTo(x, y);
-        });
+          if (j === 0) {
+            gctx.moveTo(x, y);
+          } else {
+            gctx.lineTo(x, y);
+          }
+        }
 
         gctx.stroke();
-      });
-
-      // 범례
-      let lx = width - 360;
-      let ly = 22;
-      pendulums.forEach(p => {
-        gctx.fillStyle = p.color;
-        gctx.fillRect(lx, ly - 10, 12, 12);
-
-        gctx.fillStyle = "#dbeafe";
-        gctx.font = "12px Arial";
-        gctx.textAlign = "left";
-        gctx.fillText(p.name, lx + 18, ly);
-
-        lx += 80;
-      });
-    }
-
-    function roundRect(ctx, x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-    }
-
-    function loop(now) {
-      const dtRaw = (now - lastTime) / 1000;
-      lastTime = now;
-
-      const dt = Math.min(dtRaw, 0.02);
-
-      if (!paused) {
-        simTime += dt;
-        pendulums.forEach(p => p.update(dt));
       }
 
+      var legendX = graphCanvas.width - 330;
+      var legendY = 25;
+
+      for (var k = 0; k < pendulums.length; k++) {
+        var pend = pendulums[k];
+
+        gctx.fillStyle = pend.color;
+        gctx.fillRect(legendX, legendY - 10, 12, 12);
+
+        gctx.fillStyle = "#e5e7eb";
+        gctx.textAlign = "left";
+        gctx.font = "12px Arial";
+        gctx.fillText(pend.name, legendX + 18, legendY);
+
+        legendX += 78;
+      }
+    }
+
+    function update(dt) {
+      if (!paused) {
+        time += dt;
+
+        for (var i = 0; i < pendulums.length; i++) {
+          pendulums[i].update(dt);
+        }
+      }
+    }
+
+    function loop(timestamp) {
+      if (!lastTime) {
+        lastTime = timestamp;
+      }
+
+      var dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      if (dt > 0.03) {
+        dt = 0.03;
+      }
+
+      update(dt);
       drawSimulation();
       drawGraph();
 
       requestAnimationFrame(loop);
     }
 
-    updateTextValues();
-    resetAll();
+    updateLabels();
+    resetSimulation();
     requestAnimationFrame(loop);
   </script>
 </body>
