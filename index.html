@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PID 로봇 안정화 퀘스트</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PID 로봇 안정화 게임</title>
 
   <style>
     * {
@@ -12,40 +12,40 @@
 
     body {
       margin: 0;
-      font-family: Arial, "Noto Sans KR", sans-serif;
       background: #0f172a;
       color: white;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      overflow: hidden;
     }
 
     header {
-      padding: 18px 22px;
-      background: linear-gradient(90deg, #111827, #1e293b);
+      height: 64px;
+      padding: 12px 20px;
+      background: #020617;
       border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     header h1 {
       margin: 0;
-      font-size: 26px;
+      font-size: 22px;
     }
 
-    header p {
-      margin: 8px 0 0;
-      color: #cbd5e1;
-      font-size: 15px;
+    header span {
+      color: #94a3b8;
+      font-size: 13px;
     }
 
-    .top-menu {
+    .tabs {
       display: flex;
-      gap: 10px;
-      padding: 14px 20px;
-      background: #020617;
-      border-bottom: 1px solid #334155;
-      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .tab-button {
+    .tab {
       width: auto;
-      padding: 11px 18px;
+      padding: 9px 14px;
       border-radius: 999px;
       border: 1px solid #475569;
       background: #1e293b;
@@ -54,100 +54,80 @@
       font-weight: bold;
     }
 
-    .tab-button.active {
+    .tab.active {
       background: #2563eb;
       color: white;
       border-color: #60a5fa;
     }
 
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    .quest-layout,
-    .lab-layout {
+    .layout {
+      height: calc(100vh - 64px);
       display: grid;
-      grid-template-columns: 340px 1fr 320px;
-      min-height: calc(100vh - 150px);
+      grid-template-columns: 280px 1fr 300px;
     }
 
-    .side-panel {
-      background: #1e293b;
+    .panel {
+      background: #111827;
       border-right: 1px solid #334155;
-      padding: 18px;
+      padding: 14px;
       overflow-y: auto;
     }
 
-    .right-panel {
-      background: #1e293b;
+    .right {
+      border-right: none;
       border-left: 1px solid #334155;
-      padding: 18px;
-      overflow-y: auto;
     }
 
     .card {
-      background: #0f172a;
+      background: #1e293b;
       border: 1px solid #334155;
       border-radius: 14px;
-      padding: 15px;
-      margin-bottom: 15px;
+      padding: 13px;
+      margin-bottom: 12px;
     }
 
     .card h2 {
-      margin: 0 0 10px;
-      font-size: 18px;
+      margin: 0 0 9px;
+      font-size: 16px;
       color: #e0f2fe;
     }
 
-    .card h3 {
-      margin: 0 0 8px;
-      font-size: 15px;
-      color: #bfdbfe;
-    }
-
     .card p {
-      color: #cbd5e1;
-      font-size: 14px;
-      line-height: 1.55;
-      margin: 8px 0;
-    }
-
-    .mission-title {
-      font-size: 20px;
-      font-weight: bold;
-      color: #facc15;
-      margin-bottom: 8px;
-    }
-
-    .mission-box {
-      background: #172554;
-      border: 1px solid #2563eb;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .mission-box p {
       margin: 6px 0;
-      color: #dbeafe;
-      line-height: 1.55;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #cbd5e1;
     }
+
+    .mini-guide {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .guide {
+      padding: 9px;
+      border-radius: 10px;
+      font-size: 13px;
+      background: #0f172a;
+      border: 1px solid #334155;
+    }
+
+    .guide b {
+      display: inline-block;
+      width: 24px;
+      font-size: 15px;
+    }
+
+    .p { color: #fb923c; }
+    .i { color: #f472b6; }
+    .d { color: #38bdf8; }
 
     label {
       display: block;
-      margin-top: 12px;
-      font-size: 14px;
+      margin-top: 10px;
+      font-size: 13px;
       color: #cbd5e1;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      margin-top: 6px;
     }
 
     .value {
@@ -156,17 +136,21 @@
       font-weight: bold;
     }
 
+    input[type="range"] {
+      width: 100%;
+      margin-top: 5px;
+    }
+
     button {
       width: 100%;
-      padding: 11px;
-      margin-top: 9px;
+      padding: 10px;
+      margin-top: 7px;
       border: none;
       border-radius: 10px;
       background: #2563eb;
       color: white;
       font-weight: bold;
       cursor: pointer;
-      font-size: 14px;
     }
 
     button:hover {
@@ -186,20 +170,12 @@
       background: #15803d;
     }
 
-    .danger {
+    .red {
       background: #dc2626;
     }
 
-    .danger:hover {
+    .red:hover {
       background: #b91c1c;
-    }
-
-    .yellow {
-      background: #ca8a04;
-    }
-
-    .yellow:hover {
-      background: #a16207;
     }
 
     .purple {
@@ -210,11 +186,27 @@
       background: #6b21a8;
     }
 
-    .canvas-area {
+    .quest-buttons {
       display: grid;
-      grid-template-rows: 1fr 250px;
-      height: calc(100vh - 150px);
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .quest-buttons button {
+      margin: 0;
+      font-size: 12px;
+      background: #334155;
+    }
+
+    .quest-buttons button.active {
+      background: #2563eb;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-rows: 1fr 180px;
       background: #020617;
+      min-width: 0;
     }
 
     canvas {
@@ -223,38 +215,27 @@
       display: block;
     }
 
-    #questCanvas,
-    #labCanvas {
-      background: #020617;
-    }
-
-    #questGraph,
-    #labGraph {
-      background: #111827;
+    #graph {
       border-top: 1px solid #334155;
+      background: #111827;
     }
 
     .stat {
       display: flex;
       justify-content: space-between;
+      border-bottom: 1px solid #334155;
       padding: 7px 0;
-      border-bottom: 1px solid #1f2937;
+      font-size: 13px;
       color: #cbd5e1;
-      font-size: 14px;
     }
 
     .stat b {
       color: white;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: #334155;
-      color: #e2e8f0;
-      font-size: 12px;
-      margin: 3px 3px 3px 0;
+    .result {
+      font-size: 15px;
+      line-height: 1.45;
     }
 
     .success {
@@ -267,65 +248,40 @@
       font-weight: bold;
     }
 
-    .hint {
-      background: #422006;
-      border-color: #a16207;
-    }
-
-    .hint p {
-      color: #fde68a;
-    }
-
-    .explain-p {
-      border-left: 5px solid #fb923c;
-    }
-
-    .explain-d {
-      border-left: 5px solid #38bdf8;
-    }
-
-    .explain-i {
-      border-left: 5px solid #f472b6;
-    }
-
-    .quest-list button {
-      text-align: left;
-      background: #334155;
-    }
-
-    .quest-list button.active {
-      background: #2563eb;
-    }
-
-    .small {
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      margin: 3px 2px;
+      border-radius: 999px;
+      background: #0f172a;
+      border: 1px solid #334155;
       font-size: 12px;
-      color: #94a3b8;
-      line-height: 1.5;
+      color: #cbd5e1;
     }
 
-    .lab-layout {
-      grid-template-columns: 340px 1fr;
+    .hidden {
+      display: none;
     }
 
-    .lab-layout .canvas-area {
-      height: calc(100vh - 150px);
-    }
+    @media (max-width: 1050px) {
+      body {
+        overflow: auto;
+      }
 
-    @media (max-width: 1100px) {
-      .quest-layout,
-      .lab-layout {
+      .layout {
+        height: auto;
         grid-template-columns: 1fr;
       }
 
-      .side-panel,
-      .right-panel {
-        border: none;
-        border-bottom: 1px solid #334155;
+      .stage {
+        height: 620px;
       }
 
-      .canvas-area,
-      .lab-layout .canvas-area {
-        height: 760px;
+      header {
+        height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
       }
     }
   </style>
@@ -333,231 +289,535 @@
 
 <body>
   <header>
-    <h1>PID 로봇 안정화 퀘스트</h1>
-    <p>넘어지는 로봇을 세우면서 P, I, D 제어의 역할을 게임처럼 이해하는 탐구형 시뮬레이션</p>
+    <div>
+      <h1>PID 로봇 안정화 게임</h1>
+      <span>넘어지는 로봇을 세우면서 PID 제어를 배우는 시뮬레이션</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="questTab">퀘스트</button>
+      <button class="tab" id="labTab">비교 실험</button>
+    </div>
   </header>
 
-  <nav class="top-menu">
-    <button class="tab-button active" id="questTab">퀘스트 모드</button>
-    <button class="tab-button" id="labTab">자유 실험실</button>
-  </nav>
+  <main class="layout">
+    <aside class="panel">
+      <div class="card">
+        <h2>조작</h2>
 
-  <!-- 퀘스트 모드 -->
-  <section id="questScreen" class="screen active">
-    <div class="quest-layout">
-      <aside class="side-panel">
-        <div class="card">
-          <h2>게임 목표</h2>
-          <p>
-            로봇이 한쪽으로 기울어지면 넘어질 수 있다.
-            여러분은 모터의 힘을 조절해서 로봇을 다시 똑바로 세워야 한다.
-          </p>
-          <p>
-            여기서 사용하는 조종 방법이 바로 <b>PID 제어</b>이다.
-          </p>
+        <label>
+          Kp 힘
+          <span class="value" id="kpText">25</span>
+        </label>
+        <input id="kp" type="range" min="0" max="100" step="1" value="25" />
+
+        <label>
+          Ki 기억
+          <span class="value" id="kiText">0</span>
+        </label>
+        <input id="ki" type="range" min="0" max="30" step="0.5" value="0" />
+
+        <label>
+          Kd 브레이크
+          <span class="value" id="kdText">0</span>
+        </label>
+        <input id="kd" type="range" min="0" max="50" step="0.5" value="0" />
+      </div>
+
+      <div class="card">
+        <h2>실행</h2>
+        <button class="green" id="startBtn">시작</button>
+        <button class="purple" id="pushBtn">외란 주기</button>
+        <button class="red" id="resetBtn">초기화</button>
+      </div>
+
+      <div class="card">
+        <h2>PID 한눈에 보기</h2>
+        <div class="mini-guide">
+          <div class="guide"><b class="p">P</b> 기울어진 만큼 반대로 민다</div>
+          <div class="guide"><b class="d">D</b> 빠르게 흔들리면 브레이크</div>
+          <div class="guide"><b class="i">I</b> 계속 남은 오차를 기억</div>
         </div>
+      </div>
+    </aside>
 
-        <div class="card quest-list">
-          <h2>퀘스트 선택</h2>
-          <button id="questBtn0" class="active">Quest 1. P 제어로 일단 세워보기</button>
-          <button id="questBtn1">Quest 2. D 제어로 흔들림 줄이기</button>
-          <button id="questBtn2">Quest 3. I 제어로 작은 오차 없애기</button>
-          <button id="questBtn3">Quest 4. 외란 공격 버티기</button>
+    <section class="stage">
+      <canvas id="sim"></canvas>
+      <canvas id="graph"></canvas>
+    </section>
+
+    <aside class="panel right">
+      <div class="card" id="questCard">
+        <h2>퀘스트</h2>
+        <div class="quest-buttons">
+          <button id="q0" class="active">1. P</button>
+          <button id="q1">2. PD</button>
+          <button id="q2">3. PID</button>
+          <button id="q3">4. 외란</button>
         </div>
+      </div>
 
-        <div class="mission-box">
-          <div class="mission-title" id="missionTitle">Quest 1</div>
-          <p id="missionStory"></p>
-          <p id="missionGoal"></p>
-          <p id="missionRule"></p>
-        </div>
+      <div class="card">
+        <h2 id="missionTitle">Quest 1. P 제어</h2>
+        <p id="missionText">Kp만 조절해서 로봇을 세워보자.</p>
+        <p id="missionTip">힌트: 너무 작으면 느리고, 너무 크면 흔들린다.</p>
+      </div>
 
-        <div class="card">
-          <h2>조작 장치</h2>
+      <div class="card">
+        <h2>상태</h2>
+        <div class="stat"><span>각도</span><b id="angleStat">0°</b></div>
+        <div class="stat"><span>최대 흔들림</span><b id="maxStat">0°</b></div>
+        <div class="stat"><span>안정 유지</span><b id="stableStat">0초</b></div>
+        <div class="stat"><span>남은 시간</span><b id="timeStat">0초</b></div>
+        <div class="stat"><span>점수</span><b id="scoreStat">0</b></div>
+      </div>
 
-          <label>
-            Kp : 현재 기울어진 만큼 밀기
-            <span class="value" id="qKpText">20</span>
-          </label>
-          <input type="range" id="qKp" min="0" max="100" step="1" value="20">
+      <div class="card">
+        <h2>결과</h2>
+        <div class="result" id="resultText">시작 버튼을 눌러보자.</div>
+      </div>
 
-          <label>
-            Ki : 계속 남은 오차 기억하기
-            <span class="value" id="qKiText">0</span>
-          </label>
-          <input type="range" id="qKi" min="0" max="30" step="0.5" value="0">
-
-          <label>
-            Kd : 빠른 움직임에 브레이크 걸기
-            <span class="value" id="qKdText">0</span>
-          </label>
-          <input type="range" id="qKd" min="0" max="50" step="0.5" value="0">
-        </div>
-
-        <div class="card">
-          <h2>실행</h2>
-          <button id="qStartBtn" class="green">미션 시작</button>
-          <button id="qPushBtn" class="purple">외란 공격 주기</button>
-          <button id="qResetBtn" class="danger">다시 시작</button>
-          <button id="qHintBtn" class="yellow">힌트 보기</button>
-        </div>
-      </aside>
-
-      <main class="canvas-area">
-        <canvas id="questCanvas"></canvas>
-        <canvas id="questGraph"></canvas>
-      </main>
-
-      <aside class="right-panel">
-        <div class="card">
-          <h2>현재 상태</h2>
-          <div class="stat"><span>현재 각도</span><b id="qAngleStat">0°</b></div>
-          <div class="stat"><span>각속도</span><b id="qSpeedStat">0</b></div>
-          <div class="stat"><span>최대 흔들림</span><b id="qMaxStat">0°</b></div>
-          <div class="stat"><span>안정 유지 시간</span><b id="qStableStat">0초</b></div>
-          <div class="stat"><span>남은 시간</span><b id="qTimeStat">0초</b></div>
-          <div class="stat"><span>로봇 HP</span><b id="qHpStat">100</b></div>
-          <div class="stat"><span>점수</span><b id="qScoreStat">0</b></div>
-        </div>
-
-        <div class="card">
-          <h2>결과</h2>
-          <p id="qResultText">미션을 시작해보자.</p>
-          <p class="small">
-            각도가 0도에 가까울수록 로봇이 똑바로 선 상태이다.
-            안정 유지 시간이 목표를 넘으면 미션 성공이다.
-          </p>
-        </div>
-
-        <div class="card hint" id="hintBox" style="display:none;">
-          <h2>힌트</h2>
-          <p id="hintText"></p>
-        </div>
-
-        <div class="card explain-p">
-          <h2>P 제어</h2>
-          <p>
-            P는 <b>현재 얼마나 기울었는지</b>를 보고 힘을 준다.
-            게임으로 치면 캐릭터가 오른쪽으로 많이 넘어질수록 왼쪽 방향키를 세게 누르는 것이다.
-          </p>
-        </div>
-
-        <div class="card explain-d">
-          <h2>D 제어</h2>
-          <p>
-            D는 <b>얼마나 빠르게 넘어지고 있는지</b>를 본다.
-            자동차 브레이크처럼 흔들림을 줄여주는 역할을 한다.
-          </p>
-        </div>
-
-        <div class="card explain-i">
-          <h2>I 제어</h2>
-          <p>
-            I는 <b>계속 남아 있는 작은 오차</b>를 기억한다.
-            로봇이 계속 살짝 기울어져 있으면 그걸 기억하고 조금씩 더 보정한다.
-          </p>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <!-- 자유 실험실 -->
-  <section id="labScreen" class="screen">
-    <div class="lab-layout">
-      <aside class="side-panel">
-        <div class="card">
-          <h2>자유 실험실</h2>
-          <p>
-            여기서는 무제어, P 제어, PD 제어, PID 제어를 동시에 비교할 수 있다.
-            그래프와 로봇 움직임을 보면서 어떤 제어가 더 안정적인지 관찰해보자.
-          </p>
-        </div>
-
-        <div class="card">
-          <h2>PID 계수</h2>
-
-          <label>
-            Kp
-            <span class="value" id="lKpText">35</span>
-          </label>
-          <input type="range" id="lKp" min="0" max="100" step="1" value="35">
-
-          <label>
-            Ki
-            <span class="value" id="lKiText">4</span>
-          </label>
-          <input type="range" id="lKi" min="0" max="30" step="0.5" value="4">
-
-          <label>
-            Kd
-            <span class="value" id="lKdText">12</span>
-          </label>
-          <input type="range" id="lKd" min="0" max="50" step="0.5" value="12">
-        </div>
-
-        <div class="card">
-          <h2>실험 조건</h2>
-
-          <label>
-            초기 각도
-            <span class="value" id="lAngleText">25°</span>
-          </label>
-          <input type="range" id="lStartAngle" min="-70" max="70" step="1" value="25">
-
-          <label>
-            감쇠
-            <span class="value" id="lDampingText">0.12</span>
-          </label>
-          <input type="range" id="lDamping" min="0" max="1" step="0.01" value="0.12">
-
-          <label>
-            외란 세기
-            <span class="value" id="lPushText">3.0</span>
-          </label>
-          <input type="range" id="lPushPower" min="0" max="8" step="0.1" value="3">
-        </div>
-
-        <div class="card">
-          <h2>실행</h2>
-          <button id="lPauseBtn">일시정지</button>
-          <button id="lPushBtn" class="purple">외란 주기</button>
-          <button id="lResetBtn" class="danger">초기화</button>
-        </div>
-
-        <div class="card">
-          <h2>색상</h2>
-          <span class="badge">회색: 무제어</span>
-          <span class="badge">주황: P</span>
-          <span class="badge">하늘: PD</span>
-          <span class="badge">분홍: PID</span>
-        </div>
-      </aside>
-
-      <main class="canvas-area">
-        <canvas id="labCanvas"></canvas>
-        <canvas id="labGraph"></canvas>
-      </main>
-    </div>
-  </section>
+      <div class="card" id="labLegend">
+        <h2>비교 실험 색상</h2>
+        <span class="badge">회색 무제어</span>
+        <span class="badge">주황 P</span>
+        <span class="badge">하늘 PD</span>
+        <span class="badge">분홍 PID</span>
+      </div>
+    </aside>
+  </main>
 
   <script>
-    function $(id) {
-      return document.getElementById(id);
+    const sim = document.getElementById("sim");
+    const graph = document.getElementById("graph");
+    const ctx = sim.getContext("2d");
+    const gctx = graph.getContext("2d");
+
+    const kp = document.getElementById("kp");
+    const ki = document.getElementById("ki");
+    const kd = document.getElementById("kd");
+
+    const kpText = document.getElementById("kpText");
+    const kiText = document.getElementById("kiText");
+    const kdText = document.getElementById("kdText");
+
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const pushBtn = document.getElementById("pushBtn");
+
+    const questTab = document.getElementById("questTab");
+    const labTab = document.getElementById("labTab");
+
+    const missionTitle = document.getElementById("missionTitle");
+    const missionText = document.getElementById("missionText");
+    const missionTip = document.getElementById("missionTip");
+    const resultText = document.getElementById("resultText");
+
+    const angleStat = document.getElementById("angleStat");
+    const maxStat = document.getElementById("maxStat");
+    const stableStat = document.getElementById("stableStat");
+    const timeStat = document.getElementById("timeStat");
+    const scoreStat = document.getElementById("scoreStat");
+
+    const qButtons = [
+      document.getElementById("q0"),
+      document.getElementById("q1"),
+      document.getElementById("q2"),
+      document.getElementById("q3")
+    ];
+
+    let mode = "quest";
+    let running = false;
+    let finished = false;
+    let last = 0;
+    let time = 0;
+    let score = 0;
+    let currentQuest = 0;
+
+    const G = 9.81;
+    const L = 1.4;
+    const MASS = 1;
+    const MAX_TORQUE = 35;
+
+    const quests = [
+      {
+        title: "Quest 1. P 제어",
+        text: "Kp만 조절해서 로봇을 세워보자.",
+        tip: "힌트: Kp는 힘이다. 너무 작으면 느리고, 너무 크면 흔들린다.",
+        kp: 25,
+        ki: 0,
+        kd: 0,
+        allowI: false,
+        allowD: false,
+        angle: 25,
+        limit: 18,
+        hold: 2,
+        wind: 0
+      },
+      {
+        title: "Quest 2. PD 제어",
+        text: "Kd를 사용해서 흔들림을 줄여보자.",
+        tip: "힌트: Kd는 브레이크다. 흔들림이 클수록 Kd를 조금 올려보자.",
+        kp: 35,
+        ki: 0,
+        kd: 10,
+        allowI: false,
+        allowD: true,
+        angle: 30,
+        limit: 18,
+        hold: 2,
+        wind: 0
+      },
+      {
+        title: "Quest 3. PID 제어",
+        text: "바람 때문에 남는 작은 오차까지 잡아보자.",
+        tip: "힌트: Ki는 기억이다. 조금만 올리면 남은 오차를 줄일 수 있다.",
+        kp: 35,
+        ki: 3,
+        kd: 12,
+        allowI: true,
+        allowD: true,
+        angle: 20,
+        limit: 22,
+        hold: 2.5,
+        wind: 0.35
+      },
+      {
+        title: "Quest 4. 외란 버티기",
+        text: "외부 충격을 받아도 다시 중심으로 돌아오게 해보자.",
+        tip: "힌트: Kp는 빠른 복귀, Kd는 흔들림 감소, Ki는 조금만 사용.",
+        kp: 40,
+        ki: 2,
+        kd: 15,
+        allowI: true,
+        allowD: true,
+        angle: 35,
+        limit: 25,
+        hold: 3,
+        wind: 0.2
+      }
+    ];
+
+    function degToRad(d) {
+      return d * Math.PI / 180;
     }
 
-    function degToRad(deg) {
-      return deg * Math.PI / 180;
+    function radToDeg(r) {
+      return r * 180 / Math.PI;
     }
 
-    function radToDeg(rad) {
-      return rad * 180 / Math.PI;
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
     }
 
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+    class Robot {
+      constructor(name, color, type) {
+        this.name = name;
+        this.color = color;
+        this.type = type;
+        this.reset(25);
+      }
+
+      reset(angle) {
+        this.theta = degToRad(angle);
+        this.omega = 0;
+        this.integral = 0;
+        this.prevError = 0;
+        this.history = [];
+        this.maxError = Math.abs(this.theta);
+        this.stable = 0;
+        this.stableTime = null;
+      }
+
+      push(power) {
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        this.omega += dir * power;
+      }
+
+      update(dt, gains, wind, now) {
+        let error = -this.theta;
+        this.integral += error * dt;
+        this.integral = clamp(this.integral, -2.5, 2.5);
+
+        let derivative = (error - this.prevError) / dt;
+        this.prevError = error;
+
+        let useKp = gains.kp;
+        let useKi = gains.ki;
+        let useKd = gains.kd;
+
+        if (this.type === "NONE") {
+          useKp = 0;
+          useKi = 0;
+          useKd = 0;
+        }
+
+        if (this.type === "P") {
+          useKi = 0;
+          useKd = 0;
+        }
+
+        if (this.type === "PD") {
+          useKi = 0;
+        }
+
+        let torque = useKp * error + useKi * this.integral + useKd * derivative;
+        torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
+
+        let alpha =
+          -(G / L) * Math.sin(this.theta)
+          - 0.1 * this.omega
+          + torque / (MASS * L * L)
+          + wind;
+
+        this.omega += alpha * dt;
+        this.theta += this.omega * dt;
+
+        this.maxError = Math.max(this.maxError, Math.abs(this.theta));
+
+        if (Math.abs(this.theta) < degToRad(2) && Math.abs(this.omega) < 0.06) {
+          this.stable += dt;
+          if (this.stable > 1 && this.stableTime === null) {
+            this.stableTime = now;
+          }
+        } else {
+          this.stable = 0;
+        }
+
+        this.history.push(radToDeg(this.theta));
+        if (this.history.length > 500) {
+          this.history.shift();
+        }
+      }
     }
 
-    function drawRoundRect(ctx, x, y, w, h, r) {
+    const questRobot = new Robot("로봇", "#60a5fa", "PID");
+
+    const labRobots = [
+      new Robot("무제어", "#94a3b8", "NONE"),
+      new Robot("P", "#fb923c", "P"),
+      new Robot("PD", "#38bdf8", "PD"),
+      new Robot("PID", "#f472b6", "PID")
+    ];
+
+    function resize() {
+      sim.width = sim.clientWidth;
+      sim.height = sim.clientHeight;
+      graph.width = graph.clientWidth;
+      graph.height = graph.clientHeight;
+    }
+
+    window.addEventListener("resize", resize);
+
+    function updateTexts() {
+      kpText.textContent = kp.value;
+      kiText.textContent = ki.value;
+      kdText.textContent = kd.value;
+    }
+
+    [kp, ki, kd].forEach(input => {
+      input.addEventListener("input", updateTexts);
+    });
+
+    function setQuest(index) {
+      currentQuest = index;
+      const q = quests[index];
+
+      missionTitle.textContent = q.title;
+      missionText.textContent = q.text;
+      missionTip.textContent = q.tip;
+
+      kp.value = q.kp;
+      ki.value = q.ki;
+      kd.value = q.kd;
+
+      ki.disabled = !q.allowI;
+      kd.disabled = !q.allowD;
+
+      qButtons.forEach(btn => btn.classList.remove("active"));
+      qButtons[index].classList.add("active");
+
+      updateTexts();
+      resetAll();
+    }
+
+    qButtons.forEach((btn, index) => {
+      btn.addEventListener("click", () => setQuest(index));
+    });
+
+    questTab.addEventListener("click", () => {
+      mode = "quest";
+      questTab.classList.add("active");
+      labTab.classList.remove("active");
+      setQuest(currentQuest);
+    });
+
+    labTab.addEventListener("click", () => {
+      mode = "lab";
+      labTab.classList.add("active");
+      questTab.classList.remove("active");
+      ki.disabled = false;
+      kd.disabled = false;
+      resultText.innerHTML = "비교 실험 모드: 네 가지 제어 방식을 동시에 관찰한다.";
+      resetAll();
+    });
+
+    startBtn.addEventListener("click", () => {
+      running = true;
+      finished = false;
+      resultText.innerHTML = "진행 중...";
+    });
+
+    resetBtn.addEventListener("click", resetAll);
+
+    pushBtn.addEventListener("click", () => {
+      if (mode === "quest") {
+        questRobot.push(4);
+      } else {
+        labRobots.forEach(r => r.push(3));
+      }
+    });
+
+    function getGains() {
+      return {
+        kp: Number(kp.value),
+        ki: Number(ki.value),
+        kd: Number(kd.value)
+      };
+    }
+
+    function resetAll() {
+      running = false;
+      finished = false;
+      time = 0;
+      score = 0;
+
+      const q = quests[currentQuest];
+      questRobot.reset(q.angle);
+
+      labRobots.forEach(r => r.reset(q.angle));
+
+      resultText.innerHTML = "시작 버튼을 눌러보자.";
+      updateStats();
+    }
+
+    function update(dt) {
+      if (!running || finished) return;
+
+      time += dt;
+      const gains = getGains();
+
+      if (mode === "quest") {
+        const q = quests[currentQuest];
+        questRobot.update(dt, gains, q.wind, time);
+
+        score = Math.round(
+          1000
+          - time * 15
+          - radToDeg(questRobot.maxError) * 4
+          + questRobot.stable * 100
+        );
+        score = Math.max(0, score);
+
+        if (questRobot.stable >= q.hold) {
+          finished = true;
+          running = false;
+          resultText.innerHTML =
+            "<span class='success'>성공!</span><br>로봇이 안정화되었다.";
+        }
+
+        if (time >= q.limit) {
+          finished = true;
+          running = false;
+          resultText.innerHTML =
+            "<span class='fail'>실패!</span><br>값을 조절해서 다시 도전해보자.";
+        }
+      } else {
+        labRobots.forEach(r => r.update(dt, gains, 0, time));
+      }
+
+      updateStats();
+    }
+
+    function updateStats() {
+      const q = quests[currentQuest];
+      const r = mode === "quest" ? questRobot : labRobots[3];
+
+      angleStat.textContent = radToDeg(r.theta).toFixed(2) + "°";
+      maxStat.textContent = radToDeg(r.maxError).toFixed(2) + "°";
+      stableStat.textContent = r.stable.toFixed(2) + "초";
+      timeStat.textContent = Math.max(0, q.limit - time).toFixed(1) + "초";
+      scoreStat.textContent = score;
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.lineWidth = 1;
+
+      for (let x = 0; x < sim.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, sim.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y < sim.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(sim.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawRobot(robot, x, y, size, label) {
+      const topX = x + size * Math.sin(robot.theta);
+      const topY = y - size * Math.cos(robot.theta);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - size);
+      ctx.stroke();
+
+      ctx.strokeStyle = robot.color;
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(topX, topY);
+      ctx.stroke();
+
+      ctx.fillStyle = robot.color;
+      ctx.beginPath();
+      ctx.arc(x, y, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(topX, topY);
+      ctx.rotate(robot.theta);
+      ctx.fillStyle = robot.color;
+      roundRect(ctx, -35, -35, 70, 70, 12);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.beginPath();
+      ctx.arc(-13, -8, 5, 0, Math.PI * 2);
+      ctx.arc(13, -8, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = "#e5e7eb";
+      ctx.textAlign = "center";
+      ctx.font = "bold 15px Arial";
+      ctx.fillText(label, x, y + 34);
+
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillText(radToDeg(robot.theta).toFixed(1) + "°", x, y + 54);
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
       ctx.lineTo(x + w - r, y);
@@ -571,820 +831,122 @@
       ctx.closePath();
     }
 
-    var activeScreen = "quest";
-
-    $("questTab").addEventListener("click", function () {
-      activeScreen = "quest";
-      $("questTab").classList.add("active");
-      $("labTab").classList.remove("active");
-      $("questScreen").classList.add("active");
-      $("labScreen").classList.remove("active");
-      resizeAll();
-    });
-
-    $("labTab").addEventListener("click", function () {
-      activeScreen = "lab";
-      $("labTab").classList.add("active");
-      $("questTab").classList.remove("active");
-      $("labScreen").classList.add("active");
-      $("questScreen").classList.remove("active");
-      resizeAll();
-    });
-
-    var G = 9.81;
-    var LENGTH = 1.4;
-    var MASS = 1.0;
-    var MAX_TORQUE = 35;
-
-    function RobotPendulum(options) {
-      this.name = options.name || "Robot";
-      this.color = options.color || "#60a5fa";
-      this.mode = options.mode || "PID";
-      this.theta = 0;
-      this.omega = 0;
-      this.integral = 0;
-      this.previousError = 0;
-      this.history = [];
-      this.maxError = 0;
-      this.stableCounter = 0;
-      this.stableTime = null;
-      this.windTorque = 0;
-      this.reset = function (startAngle) {
-        this.theta = degToRad(startAngle);
-        this.omega = 0;
-        this.integral = 0;
-        this.previousError = 0;
-        this.history = [];
-        this.maxError = Math.abs(this.theta);
-        this.stableCounter = 0;
-        this.stableTime = null;
-      };
-      this.push = function (power) {
-        var direction = Math.random() > 0.5 ? 1 : -1;
-        this.omega += direction * power;
-      };
-      this.update = function (dt, gains, damping, timeNow) {
-        var error = 0 - this.theta;
-        this.integral += error * dt;
-        this.integral = clamp(this.integral, -2.5, 2.5);
-
-        var derivative = (error - this.previousError) / dt;
-        this.previousError = error;
-
-        var kp = gains.kp || 0;
-        var ki = gains.ki || 0;
-        var kd = gains.kd || 0;
-
-        if (this.mode === "NONE") {
-          kp = 0; ki = 0; kd = 0;
-        } else if (this.mode === "P") {
-          ki = 0; kd = 0;
-        } else if (this.mode === "PD") {
-          ki = 0;
-        }
-
-        var torque = kp * error + ki * this.integral + kd * derivative;
-        torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
-
-        var alpha =
-          -(G / LENGTH) * Math.sin(this.theta)
-          - damping * this.omega
-          + torque / (MASS * LENGTH * LENGTH)
-          + this.windTorque;
-
-        this.omega += alpha * dt;
-        this.theta += this.omega * dt;
-
-        this.maxError = Math.max(this.maxError, Math.abs(this.theta));
-
-        if (Math.abs(this.theta) < degToRad(2) && Math.abs(this.omega) < 0.06) {
-          this.stableCounter += dt;
-          if (this.stableCounter > 1.0 && this.stableTime === null) {
-            this.stableTime = timeNow;
-          }
-        } else {
-          this.stableCounter = 0;
-        }
-
-        this.history.push(radToDeg(this.theta));
-        if (this.history.length > 650) {
-          this.history.shift();
-        }
-      };
-    }
-
-    /* =====================
-       Quest Mode
-    ===================== */
-
-    var questCanvas = $("questCanvas");
-    var questGraph = $("questGraph");
-    var qctx = questCanvas.getContext("2d");
-    var qgctx = questGraph.getContext("2d");
-
-    var questRobot = new RobotPendulum({
-      name: "안정화 로봇",
-      color: "#60a5fa",
-      mode: "PID"
-    });
-
-    var quests = [
-      {
-        title: "Quest 1. P 제어로 일단 세워보기",
-        story: "로봇이 오른쪽으로 기울어졌다. 지금은 가장 기본 조작인 P 제어만 사용할 수 있다.",
-        goal: "목표: 18초 안에 로봇을 0도 근처에서 2초 이상 안정화시키기",
-        rule: "사용 가능: Kp / 사용 불가: Ki, Kd",
-        kp: 20, ki: 0, kd: 0,
-        allowI: false, allowD: false,
-        startAngle: 25,
-        timeLimit: 18,
-        holdTime: 2,
-        wind: 0,
-        damping: 0.10,
-        hint: "Kp는 '기울어진 만큼 반대로 밀어주는 힘'이야. 너무 작으면 느리고, 너무 크면 반대쪽으로 확 넘어가. 중간값을 찾아봐."
-      },
-      {
-        title: "Quest 2. D 제어로 흔들림 줄이기",
-        story: "이번 로봇은 세워지긴 하지만 계속 흔들린다. 브레이크 역할을 하는 D 제어를 사용해보자.",
-        goal: "목표: 18초 안에 흔들림을 줄이고 안정화시키기",
-        rule: "사용 가능: Kp, Kd / 사용 불가: Ki",
-        kp: 35, ki: 0, kd: 8,
-        allowI: false, allowD: true,
-        startAngle: 30,
-        timeLimit: 18,
-        holdTime: 2,
-        wind: 0,
-        damping: 0.06,
-        hint: "Kd는 브레이크야. 로봇이 너무 빠르게 넘어질 때 속도를 줄여줘. Kp만 올리지 말고 Kd를 조금씩 올려봐."
-      },
-      {
-        title: "Quest 3. I 제어로 작은 오차 없애기",
-        story: "바람이 계속 불어서 로봇이 아주 조금씩 한쪽으로 밀린다. 이때는 남은 오차를 기억하는 I 제어가 필요하다.",
-        goal: "목표: 바람이 부는 상황에서도 22초 안에 안정화시키기",
-        rule: "사용 가능: Kp, Ki, Kd",
-        kp: 35, ki: 3, kd: 12,
-        allowI: true, allowD: true,
-        startAngle: 20,
-        timeLimit: 22,
-        holdTime: 2.5,
-        wind: 0.45,
-        damping: 0.10,
-        hint: "Ki는 계속 남아 있는 작은 오차를 기억해. 하지만 너무 높이면 오히려 로봇이 뒤늦게 세게 반응해서 흔들릴 수 있어."
-      },
-      {
-        title: "Quest 4. 외란 공격 버티기",
-        story: "이제 마지막 미션이다. 로봇이 외부 충격을 받아도 다시 중심을 찾아야 한다.",
-        goal: "목표: 외란 공격 후에도 25초 안에 다시 안정화시키기",
-        rule: "사용 가능: Kp, Ki, Kd / 외란 버튼을 눌러 실험 가능",
-        kp: 40, ki: 2, kd: 15,
-        allowI: true,
-        allowD: true,
-        startAngle: 35,
-        timeLimit: 25,
-        holdTime: 3,
-        wind: 0.25,
-        damping: 0.08,
-        hint: "외란에는 빠른 반응과 브레이크가 모두 중요해. Kp로 빨리 세우고, Kd로 흔들림을 줄이고, Ki는 아주 조금만 써봐."
-      }
-    ];
-
-    var currentQuest = 0;
-    var questRunning = false;
-    var questFinished = false;
-    var qTime = 0;
-    var qHp = 100;
-    var qScore = 0;
-    var qLastTimestamp = 0;
-
-    function setQuest(index) {
-      currentQuest = index;
-      var q = quests[index];
-
-      $("missionTitle").textContent = q.title;
-      $("missionStory").textContent = q.story;
-      $("missionGoal").textContent = q.goal;
-      $("missionRule").textContent = q.rule;
-
-      $("qKp").value = q.kp;
-      $("qKi").value = q.ki;
-      $("qKd").value = q.kd;
-
-      $("qKi").disabled = !q.allowI;
-      $("qKd").disabled = !q.allowD;
-
-      $("qPushBtn").disabled = index !== 3;
-
-      $("hintBox").style.display = "none";
-
-      for (var i = 0; i < 4; i++) {
-        $("questBtn" + i).classList.remove("active");
-      }
-      $("questBtn" + index).classList.add("active");
-
-      resetQuest();
-      updateQuestLabels();
-    }
-
-    $("questBtn0").addEventListener("click", function () { setQuest(0); });
-    $("questBtn1").addEventListener("click", function () { setQuest(1); });
-    $("questBtn2").addEventListener("click", function () { setQuest(2); });
-    $("questBtn3").addEventListener("click", function () { setQuest(3); });
-
-    function updateQuestLabels() {
-      $("qKpText").textContent = $("qKp").value;
-      $("qKiText").textContent = $("qKi").value;
-      $("qKdText").textContent = $("qKd").value;
-    }
-
-    $("qKp").addEventListener("input", updateQuestLabels);
-    $("qKi").addEventListener("input", updateQuestLabels);
-    $("qKd").addEventListener("input", updateQuestLabels);
-
-    $("qStartBtn").addEventListener("click", function () {
-      questRunning = true;
-      questFinished = false;
-      $("qResultText").innerHTML = "미션 진행 중! 로봇이 0도 근처에서 버티도록 조절해보자.";
-    });
-
-    $("qResetBtn").addEventListener("click", function () {
-      resetQuest();
-    });
-
-    $("qPushBtn").addEventListener("click", function () {
-      if (currentQuest === 3) {
-        questRobot.push(4.0);
-        $("qResultText").innerHTML = "외란 공격이 들어왔다! 다시 안정화시켜보자.";
-      }
-    });
-
-    $("qHintBtn").addEventListener("click", function () {
-      $("hintBox").style.display = "block";
-      $("hintText").textContent = quests[currentQuest].hint;
-    });
-
-    function resetQuest() {
-      var q = quests[currentQuest];
-      questRobot.reset(q.startAngle);
-      questRobot.windTorque = q.wind;
-      qTime = 0;
-      qHp = 100;
-      qScore = 0;
-      questRunning = false;
-      questFinished = false;
-      $("qResultText").innerHTML = "미션을 시작해보자.";
-      updateQuestStats();
-    }
-
-    function getQuestGains() {
-      return {
-        kp: Number($("qKp").value),
-        ki: Number($("qKi").value),
-        kd: Number($("qKd").value)
-      };
-    }
-
-    function updateQuest(dt) {
-      if (!questRunning || questFinished) {
-        return;
-      }
-
-      var q = quests[currentQuest];
-      qTime += dt;
-
-      questRobot.update(dt, getQuestGains(), q.damping, qTime);
-
-      var angleAbs = Math.abs(radToDeg(questRobot.theta));
-
-      if (angleAbs > 45) {
-        qHp -= dt * 12;
-      } else if (angleAbs > 30) {
-        qHp -= dt * 4;
-      }
-
-      qHp = clamp(qHp, 0, 100);
-
-      var timeLeft = Math.max(0, q.timeLimit - qTime);
-
-      qScore = Math.round(
-        1000
-        - qTime * 18
-        - radToDeg(questRobot.maxError) * 4
-        + questRobot.stableCounter * 80
-        + qHp * 2
-      );
-
-      qScore = Math.max(0, qScore);
-
-      if (questRobot.stableCounter >= q.holdTime) {
-        questFinished = true;
-        questRunning = false;
-
-        var stars = "★";
-        if (qScore > 900) stars = "★★★";
-        else if (qScore > 650) stars = "★★";
-
-        $("qResultText").innerHTML =
-          "<span class='success'>미션 성공!</span><br>" +
-          "로봇을 안정화했다. 획득 등급: " + stars +
-          "<br><br>이번 미션에서 배운 점: " + getLearningMessage(currentQuest);
-      }
-
-      if (qTime >= q.timeLimit && !questFinished) {
-        questFinished = true;
-        questRunning = false;
-        $("qResultText").innerHTML =
-          "<span class='fail'>미션 실패</span><br>" +
-          "시간 안에 충분히 안정화하지 못했다. 힌트를 보고 K값을 다시 조절해보자.";
-      }
-
-      if (qHp <= 0 && !questFinished) {
-        questFinished = true;
-        questRunning = false;
-        $("qResultText").innerHTML =
-          "<span class='fail'>로봇이 넘어졌다!</span><br>" +
-          "각도가 너무 크게 흔들렸다. Kp가 너무 크거나 Kd가 부족할 수 있다.";
-      }
-
-      updateQuestStats();
-    }
-
-    function getLearningMessage(index) {
-      if (index === 0) {
-        return "P 제어는 현재 오차에 반응한다. 빠르게 움직이지만 값이 너무 크면 흔들림이 커진다.";
-      }
-      if (index === 1) {
-        return "D 제어는 브레이크 역할을 한다. 속도를 줄여 흔들림을 안정시킨다.";
-      }
-      if (index === 2) {
-        return "I 제어는 계속 남아 있는 작은 오차를 기억해 보정한다.";
-      }
-      return "좋은 PID 제어는 갑작스러운 외란이 와도 다시 중심으로 돌아오게 만든다.";
-    }
-
-    function updateQuestStats() {
-      var q = quests[currentQuest];
-      $("qAngleStat").textContent = radToDeg(questRobot.theta).toFixed(2) + "°";
-      $("qSpeedStat").textContent = questRobot.omega.toFixed(2);
-      $("qMaxStat").textContent = radToDeg(questRobot.maxError).toFixed(2) + "°";
-      $("qStableStat").textContent = questRobot.stableCounter.toFixed(2) + "초";
-      $("qTimeStat").textContent = Math.max(0, q.timeLimit - qTime).toFixed(1) + "초";
-      $("qHpStat").textContent = Math.round(qHp);
-      $("qScoreStat").textContent = qScore;
-    }
-
-    function drawQuestScene() {
-      var ctx = qctx;
-      var w = questCanvas.width;
-      var h = questCanvas.height;
-
+    function drawScene() {
       ctx.fillStyle = "#020617";
-      ctx.fillRect(0, 0, w, h);
-
-      drawGrid(ctx, w, h);
-
-      var centerX = w / 2;
-      var groundY = h * 0.78;
-      var robotHeight = Math.min(250, h * 0.45);
-      var pivotX = centerX;
-      var pivotY = groundY - robotHeight * 0.1;
-
-      var theta = questRobot.theta;
-      var topX = pivotX + robotHeight * Math.sin(theta);
-      var topY = pivotY - robotHeight * Math.cos(theta);
+      ctx.fillRect(0, 0, sim.width, sim.height);
+      drawGrid();
 
       ctx.strokeStyle = "#475569";
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.moveTo(0, groundY);
-      ctx.lineTo(w, groundY);
+      ctx.moveTo(0, sim.height * 0.78);
+      ctx.lineTo(sim.width, sim.height * 0.78);
       ctx.stroke();
 
-      ctx.fillStyle = "#0f172a";
-      ctx.strokeStyle = "#334155";
-      ctx.lineWidth = 2;
-      drawRoundRect(ctx, centerX - 230, 25, 460, 90, 16);
-      ctx.fill();
-      ctx.stroke();
+      if (mode === "quest") {
+        drawRobot(
+          questRobot,
+          sim.width / 2,
+          sim.height * 0.78,
+          Math.min(230, sim.height * 0.45),
+          "안정화 로봇"
+        );
 
-      ctx.fillStyle = "#e2e8f0";
-      ctx.textAlign = "center";
-      ctx.font = "bold 22px Arial";
-      ctx.fillText("넘어지지 않게 로봇을 세워라!", centerX, 57);
+        ctx.fillStyle = "#e2e8f0";
+        ctx.textAlign = "center";
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(missionTitle.textContent, sim.width / 2, 40);
 
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("목표 각도: 0°   |   현재 각도: " + radToDeg(theta).toFixed(2) + "°", centerX, 84);
+        if (quests[currentQuest].wind !== 0) {
+          ctx.font = "14px Arial";
+          ctx.fillStyle = "#93c5fd";
+          ctx.fillText("바람이 계속 불고 있음", sim.width / 2, 65);
+        }
+      } else {
+        const gap = sim.width / 5;
+        labRobots.forEach((r, i) => {
+          drawRobot(
+            r,
+            gap * (i + 1),
+            sim.height * 0.78,
+            Math.min(150, sim.height * 0.35),
+            r.name
+          );
+        });
 
-      if (quests[currentQuest].wind !== 0) {
-        ctx.fillStyle = "#93c5fd";
-        ctx.font = "bold 15px Arial";
-        ctx.fillText("지속적인 바람이 불고 있음 → I 제어가 필요할 수 있음", centerX, 106);
-      }
-
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pivotX, pivotY);
-      ctx.lineTo(pivotX, pivotY - robotHeight);
-      ctx.stroke();
-
-      ctx.strokeStyle = "#60a5fa";
-      ctx.lineWidth = 12;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(pivotX, pivotY);
-      ctx.lineTo(topX, topY);
-      ctx.stroke();
-
-      ctx.fillStyle = "#38bdf8";
-      ctx.beginPath();
-      ctx.arc(pivotX, pivotY, 18, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(topX, topY);
-      ctx.rotate(theta);
-
-      ctx.fillStyle = "#2563eb";
-      drawRoundRect(ctx, -45, -45, 90, 90, 16);
-      ctx.fill();
-
-      ctx.fillStyle = "#e0f2fe";
-      ctx.beginPath();
-      ctx.arc(-18, -12, 8, 0, Math.PI * 2);
-      ctx.arc(18, -12, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "#e0f2fe";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(0, 12, 18, 0, Math.PI);
-      ctx.stroke();
-
-      ctx.restore();
-
-      ctx.fillStyle = "#e2e8f0";
-      ctx.textAlign = "left";
-      ctx.font = "14px Arial";
-      ctx.fillText("HP", 25, h - 35);
-
-      ctx.fillStyle = "#334155";
-      ctx.fillRect(60, h - 50, 180, 18);
-
-      ctx.fillStyle = qHp > 50 ? "#22c55e" : qHp > 25 ? "#facc15" : "#ef4444";
-      ctx.fillRect(60, h - 50, 180 * (qHp / 100), 18);
-
-      ctx.strokeStyle = "#94a3b8";
-      ctx.strokeRect(60, h - 50, 180, 18);
-
-      ctx.fillStyle = "#cbd5e1";
-      ctx.textAlign = "right";
-      ctx.fillText("Quest " + (currentQuest + 1), w - 25, h - 35);
-    }
-
-    function drawQuestGraph() {
-      drawGraphBase(qgctx, questGraph, "로봇 각도 변화 그래프");
-      drawHistoryLine(qgctx, questGraph, questRobot.history, "#60a5fa", 650);
-    }
-
-    /* =====================
-       Lab Mode
-    ===================== */
-
-    var labCanvas = $("labCanvas");
-    var labGraph = $("labGraph");
-    var lctx = labCanvas.getContext("2d");
-    var lgctx = labGraph.getContext("2d");
-
-    var labTime = 0;
-    var labPaused = false;
-    var lLastTimestamp = 0;
-
-    var labRobots = [
-      new RobotPendulum({ name: "무제어", color: "#94a3b8", mode: "NONE" }),
-      new RobotPendulum({ name: "P 제어", color: "#fb923c", mode: "P" }),
-      new RobotPendulum({ name: "PD 제어", color: "#38bdf8", mode: "PD" }),
-      new RobotPendulum({ name: "PID 제어", color: "#f472b6", mode: "PID" })
-    ];
-
-    function updateLabLabels() {
-      $("lKpText").textContent = $("lKp").value;
-      $("lKiText").textContent = $("lKi").value;
-      $("lKdText").textContent = $("lKd").value;
-      $("lAngleText").textContent = $("lStartAngle").value + "°";
-      $("lDampingText").textContent = $("lDamping").value;
-      $("lPushText").textContent = $("lPushPower").value;
-    }
-
-    ["lKp", "lKi", "lKd", "lStartAngle", "lDamping", "lPushPower"].forEach(function (id) {
-      $(id).addEventListener("input", updateLabLabels);
-    });
-
-    $("lStartAngle").addEventListener("change", resetLab);
-
-    $("lPauseBtn").addEventListener("click", function () {
-      labPaused = !labPaused;
-      $("lPauseBtn").textContent = labPaused ? "다시 실행" : "일시정지";
-    });
-
-    $("lResetBtn").addEventListener("click", resetLab);
-
-    $("lPushBtn").addEventListener("click", function () {
-      var power = Number($("lPushPower").value);
-      for (var i = 0; i < labRobots.length; i++) {
-        labRobots[i].push(power);
-      }
-    });
-
-    function resetLab() {
-      labTime = 0;
-      var angle = Number($("lStartAngle").value);
-      for (var i = 0; i < labRobots.length; i++) {
-        labRobots[i].reset(angle);
-        labRobots[i].windTorque = 0;
+        ctx.fillStyle = "#e2e8f0";
+        ctx.textAlign = "center";
+        ctx.font = "bold 22px Arial";
+        ctx.fillText("제어 방식 비교 실험", sim.width / 2, 40);
       }
     }
 
-    function getLabGains() {
-      return {
-        kp: Number($("lKp").value),
-        ki: Number($("lKi").value),
-        kd: Number($("lKd").value)
-      };
+    function drawGraph() {
+      gctx.fillStyle = "#111827";
+      gctx.fillRect(0, 0, graph.width, graph.height);
+
+      const pad = 35;
+      const w = graph.width - pad * 2;
+      const h = graph.height - pad * 2;
+      const midY = pad + h / 2;
+
+      gctx.strokeStyle = "#475569";
+      gctx.lineWidth = 1;
+      gctx.beginPath();
+      gctx.moveTo(pad, pad);
+      gctx.lineTo(pad, pad + h);
+      gctx.lineTo(pad + w, pad + h);
+      gctx.stroke();
+
+      gctx.strokeStyle = "rgba(255,255,255,0.35)";
+      gctx.beginPath();
+      gctx.moveTo(pad, midY);
+      gctx.lineTo(pad + w, midY);
+      gctx.stroke();
+
+      gctx.fillStyle = "#e5e7eb";
+      gctx.font = "bold 14px Arial";
+      gctx.textAlign = "left";
+      gctx.fillText("각도 변화", 14, 22);
+
+      const robots = mode === "quest" ? [questRobot] : labRobots;
+
+      robots.forEach(robot => {
+        if (robot.history.length < 2) return;
+
+        gctx.strokeStyle = robot.color;
+        gctx.lineWidth = 2;
+        gctx.beginPath();
+
+        robot.history.forEach((angle, i) => {
+          const x = pad + (i / 500) * w;
+          const y = midY - (angle / 90) * (h / 2);
+
+          if (i === 0) gctx.moveTo(x, y);
+          else gctx.lineTo(x, y);
+        });
+
+        gctx.stroke();
+      });
     }
 
-    function updateLab(dt) {
-      if (labPaused) return;
+    function loop(timestamp) {
+      if (!last) last = timestamp;
+      let dt = (timestamp - last) / 1000;
+      last = timestamp;
+      dt = Math.min(dt, 0.03);
 
-      labTime += dt;
+      update(dt);
+      drawScene();
+      drawGraph();
 
-      var gains = getLabGains();
-      var damping = Number($("lDamping").value);
-
-      for (var i = 0; i < labRobots.length; i++) {
-        labRobots[i].update(dt, gains, damping, labTime);
-      }
+      requestAnimationFrame(loop);
     }
 
-    function drawLabScene() {
-      var ctx = lctx;
-      var w = labCanvas.width;
-      var h = labCanvas.height;
-
-      ctx.fillStyle = "#020617";
-      ctx.fillRect(0, 0, w, h);
-
-      drawGrid(ctx, w, h);
-
-      for (var i = 0; i < labRobots.length; i++) {
-        drawSmallRobot(ctx, labRobots[i], i, labRobots.length, w, h);
-      }
-
-      ctx.fillStyle = "#e2e8f0";
-      ctx.textAlign = "left";
-      ctx.font = "14px Arial";
-      ctx.fillText("자유 실험 시간: " + labTime.toFixed(2) + "초", 18, 24);
-    }
-
-    function drawSmallRobot(ctx, robot, index, total, w, h) {
-      var areaW = w / total;
-      var cx = areaW * index + areaW / 2;
-      var groundY = h * 0.72;
-      var robotH = Math.min(190, h * 0.38);
-
-      var pivotX = cx;
-      var pivotY = groundY;
-      var topX = pivotX + robotH * Math.sin(robot.theta);
-      var topY = pivotY - robotH * Math.cos(robot.theta);
-
-      var cardX = areaW * index + 12;
-      var cardY = 45;
-      var cardW = areaW - 24;
-      var cardH = h - 80;
-
-      ctx.fillStyle = "#0f172a";
-      ctx.strokeStyle = "#334155";
-      drawRoundRect(ctx, cardX, cardY, cardW, cardH, 16);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(255,255,255,0.2)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pivotX, pivotY);
-      ctx.lineTo(pivotX, pivotY - robotH);
-      ctx.stroke();
-
-      ctx.strokeStyle = robot.color;
-      ctx.lineWidth = 8;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(pivotX, pivotY);
-      ctx.lineTo(topX, topY);
-      ctx.stroke();
-
-      ctx.fillStyle = robot.color;
-      ctx.beginPath();
-      ctx.arc(pivotX, pivotY, 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(topX, topY);
-      ctx.rotate(robot.theta);
-      ctx.fillStyle = robot.color;
-      drawRoundRect(ctx, -32, -32, 64, 64, 12);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.75)";
-      ctx.beginPath();
-      ctx.arc(-12, -8, 5, 0, Math.PI * 2);
-      ctx.arc(12, -8, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.font = "bold 17px Arial";
-      ctx.fillText(robot.name, cx, h - 105);
-
-      ctx.font = "13px Arial";
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("현재 각도: " + radToDeg(robot.theta).toFixed(2) + "°", cx, h - 78);
-      ctx.fillText("최대 흔들림: " + radToDeg(robot.maxError).toFixed(2) + "°", cx, h - 55);
-
-      var stableText = robot.stableTime === null ? "미도달" : robot.stableTime.toFixed(2) + "초";
-      ctx.fillText("안정화 시간: " + stableText, cx, h - 32);
-    }
-
-    function drawLabGraph() {
-      drawGraphBase(lgctx, labGraph, "제어 방식별 각도 변화 비교");
-
-      for (var i = 0; i < labRobots.length; i++) {
-        drawHistoryLine(lgctx, labGraph, labRobots[i].history, labRobots[i].color, 650);
-      }
-
-      var x = labGraph.width - 350;
-      var y = 25;
-      for (var j = 0; j < labRobots.length; j++) {
-        lgctx.fillStyle = labRobots[j].color;
-        lgctx.fillRect(x, y - 10, 12, 12);
-        lgctx.fillStyle = "#e5e7eb";
-        lgctx.font = "12px Arial";
-        lgctx.textAlign = "left";
-        lgctx.fillText(labRobots[j].name, x + 18, y);
-        x += 80;
-      }
-    }
-
-    /* =====================
-       Common Drawing
-    ===================== */
-
-    function drawGrid(ctx, w, h) {
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
-      ctx.lineWidth = 1;
-
-      for (var x = 0; x < w; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-
-      for (var y = 0; y < h; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-    }
-
-    function drawGraphBase(ctx, canvas, title) {
-      var w = canvas.width;
-      var h = canvas.height;
-      var padding = 45;
-      var graphW = w - padding * 2;
-      var graphH = h - padding * 2;
-      var midY = padding + graphH / 2;
-
-      ctx.fillStyle = "#111827";
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "left";
-      ctx.font = "bold 16px Arial";
-      ctx.fillText(title, 18, 25);
-
-      ctx.strokeStyle = "#475569";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, padding + graphH);
-      ctx.lineTo(padding + graphW, padding + graphH);
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(255,255,255,0.35)";
-      ctx.beginPath();
-      ctx.moveTo(padding, midY);
-      ctx.lineTo(padding + graphW, midY);
-      ctx.stroke();
-
-      for (var angle = -60; angle <= 60; angle += 20) {
-        var y = midY - angle / 90 * (graphH / 2);
-
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(padding + graphW, y);
-        ctx.stroke();
-
-        ctx.fillStyle = "#94a3b8";
-        ctx.textAlign = "right";
-        ctx.font = "11px Arial";
-        ctx.fillText(angle + "°", padding - 8, y + 4);
-      }
-    }
-
-    function drawHistoryLine(ctx, canvas, history, color, maxLen) {
-      if (history.length < 2) return;
-
-      var padding = 45;
-      var w = canvas.width - padding * 2;
-      var h = canvas.height - padding * 2;
-      var midY = padding + h / 2;
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-
-      for (var i = 0; i < history.length; i++) {
-        var x = padding + i / maxLen * w;
-        var y = midY - history[i] / 90 * (h / 2);
-
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-
-      ctx.stroke();
-    }
-
-    /* =====================
-       Resize and Main Loop
-    ===================== */
-
-    function resizeCanvas(canvas) {
-      var ratio = window.devicePixelRatio || 1;
-      canvas.width = canvas.clientWidth * ratio;
-      canvas.height = canvas.clientHeight * ratio;
-      var ctx = canvas.getContext("2d");
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      canvas.width = canvas.clientWidth;
-      canvas.height = canvas.clientHeight;
-    }
-
-    function resizeAll() {
-      questCanvas.width = questCanvas.clientWidth;
-      questCanvas.height = questCanvas.clientHeight;
-      questGraph.width = questGraph.clientWidth;
-      questGraph.height = questGraph.clientHeight;
-
-      labCanvas.width = labCanvas.clientWidth;
-      labCanvas.height = labCanvas.clientHeight;
-      labGraph.width = labGraph.clientWidth;
-      labGraph.height = labGraph.clientHeight;
-    }
-
-    window.addEventListener("resize", resizeAll);
-
-    function mainLoop(timestamp) {
-      if (!qLastTimestamp) qLastTimestamp = timestamp;
-      if (!lLastTimestamp) lLastTimestamp = timestamp;
-
-      var qdt = (timestamp - qLastTimestamp) / 1000;
-      var ldt = (timestamp - lLastTimestamp) / 1000;
-
-      qLastTimestamp = timestamp;
-      lLastTimestamp = timestamp;
-
-      qdt = Math.min(qdt, 0.03);
-      ldt = Math.min(ldt, 0.03);
-
-      updateQuest(qdt);
-      updateLab(ldt);
-
-      drawQuestScene();
-      drawQuestGraph();
-
-      drawLabScene();
-      drawLabGraph();
-
-      requestAnimationFrame(mainLoop);
-    }
-
-    resizeAll();
+    resize();
     setQuest(0);
-    updateLabLabels();
-    resetLab();
-    requestAnimationFrame(mainLoop);
+    updateTexts();
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
