@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PID 로봇 디펜스</title>
+
+  <title>PID 로봇 디펜스 : 무한 생존</title>
 
   <style>
     * {
@@ -27,22 +28,21 @@
 
     header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       padding: 12px 20px;
-      background: rgba(2, 6, 23, 0.92);
+      background: rgba(2, 6, 23, 0.94);
       border-bottom: 1px solid #334155;
     }
 
     .title h1 {
       margin: 0;
       font-size: 24px;
-      letter-spacing: -0.5px;
     }
 
     .title span {
-      color: #94a3b8;
       font-size: 13px;
+      color: #94a3b8;
     }
 
     .top-buttons {
@@ -81,6 +81,10 @@
       background: #7e22ce;
     }
 
+    button.yellow {
+      background: #ca8a04;
+    }
+
     button.active {
       outline: 2px solid #93c5fd;
       background: #1d4ed8;
@@ -88,15 +92,16 @@
 
     .main {
       display: grid;
-      grid-template-columns: 300px 1fr 300px;
+      grid-template-columns: 300px 1fr 310px;
       min-height: 0;
     }
 
     .panel {
       padding: 14px;
-      background: rgba(15, 23, 42, 0.88);
+      background: rgba(15, 23, 42, 0.9);
       border-right: 1px solid #334155;
       min-height: 0;
+      overflow: hidden;
     }
 
     .panel.right {
@@ -126,48 +131,60 @@
       line-height: 1.45;
     }
 
-    .hud-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .hud-box {
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 9px;
+    .key {
+      display: inline-block;
+      min-width: 27px;
       text-align: center;
+      padding: 3px 6px;
+      background: #020617;
+      border: 1px solid #475569;
+      border-radius: 7px;
+      color: #e2e8f0;
+      font-weight: 900;
+      margin-right: 4px;
     }
 
-    .hud-box b {
-      display: block;
-      font-size: 21px;
-      margin-top: 3px;
-    }
-
-    .hud-box span {
-      color: #94a3b8;
-      font-size: 12px;
-    }
-
-    label {
-      display: block;
+    .skill-box {
       margin-top: 10px;
-      color: #cbd5e1;
-      font-size: 13px;
-      font-weight: 700;
     }
 
-    .value {
-      float: right;
+    .skill-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      color: #cbd5e1;
+      margin-bottom: 5px;
+    }
+
+    .skill-label span:last-child {
       color: #86efac;
     }
 
-    input[type="range"] {
-      width: 100%;
-      margin-top: 6px;
-      accent-color: #60a5fa;
+    .skill-bar {
+      height: 17px;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .skill-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.05s linear;
+    }
+
+    .kp-fill {
+      background: linear-gradient(90deg, #fb923c, #f97316);
+    }
+
+    .kd-fill {
+      background: linear-gradient(90deg, #38bdf8, #2563eb);
+    }
+
+    .ki-fill {
+      background: linear-gradient(90deg, #f472b6, #be185d);
     }
 
     .pid-help {
@@ -198,11 +215,11 @@
     .i { color: #f472b6; }
 
     .stage {
+      position: relative;
       min-width: 0;
       min-height: 0;
-      position: relative;
       background:
-        radial-gradient(circle at center, rgba(37, 99, 235, 0.18), transparent 42%),
+        radial-gradient(circle at center, rgba(37, 99, 235, 0.16), transparent 42%),
         #020617;
     }
 
@@ -223,7 +240,7 @@
     }
 
     .pill {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.82);
       border: 1px solid #334155;
       padding: 8px 12px;
       border-radius: 999px;
@@ -232,41 +249,29 @@
       backdrop-filter: blur(8px);
     }
 
-    .mission {
-      font-size: 15px;
-      color: #fef3c7;
-      line-height: 1.45;
-      min-height: 64px;
+    .hud-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
-    .result {
-      min-height: 78px;
-      line-height: 1.45;
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-
-    .success {
-      color: #86efac;
-      font-weight: 900;
-    }
-
-    .danger-text {
-      color: #fca5a5;
-      font-weight: 900;
-    }
-
-    .key {
-      display: inline-block;
-      min-width: 28px;
-      text-align: center;
-      padding: 3px 7px;
+    .hud-box {
       background: #020617;
-      border: 1px solid #475569;
-      border-radius: 7px;
-      color: #e2e8f0;
-      font-weight: 900;
-      margin-right: 4px;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 9px;
+      text-align: center;
+    }
+
+    .hud-box span {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .hud-box b {
+      display: block;
+      font-size: 21px;
+      margin-top: 3px;
     }
 
     .bar {
@@ -285,8 +290,121 @@
       transition: width 0.1s linear;
     }
 
-    .mode-lab-only {
+    .result {
+      min-height: 75px;
+      line-height: 1.45;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .success {
+      color: #86efac;
+      font-weight: 900;
+    }
+
+    .danger-text {
+      color: #fca5a5;
+      font-weight: 900;
+    }
+
+    .boss-text {
+      color: #facc15;
+      font-weight: 900;
+    }
+
+    .card-select {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.72);
       display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-select.show {
+      display: flex;
+    }
+
+    .card-modal {
+      width: min(850px, 92vw);
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    }
+
+    .card-modal h2 {
+      margin: 0 0 8px;
+      font-size: 25px;
+      color: #fef3c7;
+      text-align: center;
+    }
+
+    .card-modal p {
+      margin: 0 0 16px;
+      color: #cbd5e1;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .item-card {
+      min-height: 190px;
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, #1e293b, #020617);
+      border: 1px solid #475569;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s;
+    }
+
+    .item-card:hover {
+      transform: translateY(-6px);
+      border-color: #93c5fd;
+    }
+
+    .item-card .icon {
+      font-size: 34px;
+      margin-bottom: 10px;
+    }
+
+    .item-card h3 {
+      margin: 0 0 8px;
+      color: #e0f2fe;
+      font-size: 17px;
+    }
+
+    .item-card p {
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .buff-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .buff {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      font-size: 12px;
     }
 
     @media (max-width: 1050px) {
@@ -310,16 +428,21 @@
       }
 
       .stage {
-        height: 620px;
+        height: 650px;
       }
 
       .panel {
         border-right: none;
         border-bottom: 1px solid #334155;
+        overflow: visible;
       }
 
       .panel.right {
         border-left: none;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -329,12 +452,12 @@
   <div class="app">
     <header>
       <div class="title">
-        <h1>PID 로봇 디펜스</h1>
-        <span>로봇이 넘어지기 전에 Kp · Kd · Ki를 조절해서 버텨라</span>
+        <h1>PID 로봇 디펜스 : 무한 생존</h1>
+        <span>Q · W · E를 누르고 있을 때만 PID가 작동한다</span>
       </div>
 
       <div class="top-buttons">
-        <button id="gameModeBtn" class="active">게임 모드</button>
+        <button id="gameModeBtn" class="active">무한 생존</button>
         <button id="labModeBtn" class="secondary">비교 실험</button>
       </div>
     </header>
@@ -342,53 +465,73 @@
     <main class="main">
       <aside class="panel">
         <div class="card">
-          <h2>조작 패널</h2>
+          <h2>스킬 조작 패널</h2>
 
-          <label>
-            Kp 힘 <span class="value" id="kpValue">28</span>
-          </label>
-          <input id="kp" type="range" min="0" max="100" step="1" value="28" />
+          <div class="skill-box">
+            <div class="skill-label">
+              <span><span class="key">Q</span>Kp 힘</span>
+              <span id="kpValue">0</span>
+            </div>
+            <div class="skill-bar">
+              <div class="skill-fill kp-fill" id="kpFill"></div>
+            </div>
+          </div>
 
-          <label>
-            Kd 브레이크 <span class="value" id="kdValue">8</span>
-          </label>
-          <input id="kd" type="range" min="0" max="55" step="0.5" value="8" />
+          <div class="skill-box">
+            <div class="skill-label">
+              <span><span class="key">W</span>Kd 브레이크</span>
+              <span id="kdValue">0</span>
+            </div>
+            <div class="skill-bar">
+              <div class="skill-fill kd-fill" id="kdFill"></div>
+            </div>
+          </div>
 
-          <label>
-            Ki 기억 <span class="value" id="kiValue">0</span>
-          </label>
-          <input id="ki" type="range" min="0" max="25" step="0.5" value="0" />
+          <div class="skill-box">
+            <div class="skill-label">
+              <span><span class="key">E</span>Ki 기억</span>
+              <span id="kiValue">0</span>
+            </div>
+            <div class="skill-bar">
+              <div class="skill-fill ki-fill" id="kiFill"></div>
+            </div>
+          </div>
 
           <p class="tiny">
-            빠른 조작:
-            <span class="key">Q</span>Kp+
-            <span class="key">W</span>Kd+
-            <span class="key">E</span>Ki+
+            키를 누르고 있을 때만 게이지가 차오르고, 손을 떼면 자동으로 0으로 내려간다.
           </p>
         </div>
 
         <div class="card">
-          <h2>게임 실행</h2>
+          <h2>실행</h2>
           <button id="startBtn" class="green">게임 시작</button>
-          <button id="gustBtn" class="purple">바람 공격 테스트</button>
+          <button id="gustBtn" class="purple">강풍 테스트</button>
+          <button id="cardBtn" class="yellow">아이템 카드</button>
           <button id="resetBtn" class="red">다시 시작</button>
         </div>
 
         <div class="card">
-          <h2>PID 초간단 설명</h2>
+          <h2>PID 한 줄 이해</h2>
           <div class="pid-help">
             <div class="pid-chip">
               <b class="p">P</b>
-              <span>기울어진 만큼 반대로 미는 힘</span>
+              <span>기울어진 만큼 미는 힘</span>
             </div>
             <div class="pid-chip">
               <b class="d">D</b>
-              <span>너무 빠르게 흔들리면 잡아주는 브레이크</span>
+              <span>빠른 흔들림을 잡는 브레이크</span>
             </div>
             <div class="pid-chip">
               <b class="i">I</b>
-              <span>계속 남는 작은 기울어짐을 기억</span>
+              <span>계속 남는 기울어짐을 기억</span>
             </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>현재 효과</h2>
+          <div class="buff-list" id="buffList">
+            <span class="buff">효과 없음</span>
           </div>
         </div>
       </aside>
@@ -399,6 +542,14 @@
         <div class="overlay">
           <div class="pill" id="topMessage">READY</div>
           <div class="pill" id="angleMessage">각도 0.0°</div>
+        </div>
+
+        <div class="card-select" id="cardSelect">
+          <div class="card-modal">
+            <h2>아이템 카드 선택</h2>
+            <p>웨이브를 버티기 위한 보조 능력 1개를 선택하자.</p>
+            <div class="cards" id="cards"></div>
+          </div>
         </div>
       </section>
 
@@ -419,7 +570,7 @@
               <b id="waveText">1</b>
             </div>
             <div class="hud-box">
-              <span>시간</span>
+              <span>생존</span>
               <b id="timeText">0</b>
             </div>
           </div>
@@ -434,25 +585,25 @@
         </div>
 
         <div class="card">
+          <h2>보스 바람</h2>
+          <div class="bar">
+            <div class="fill" id="bossFill"></div>
+          </div>
+          <p class="tiny" id="bossInfo">30초마다 색다른 보스 바람이 등장한다.</p>
+        </div>
+
+        <div class="card">
           <h2>미션</h2>
-          <div class="mission" id="missionText">
-            30초 동안 로봇을 넘어지지 않게 버텨라.
+          <div class="result" id="missionText">
+            최대한 오래 버텨라. 시간이 지날수록 바람과 보스가 강해진다.
           </div>
         </div>
 
         <div class="card">
           <h2>판정</h2>
           <div class="result" id="resultText">
-            게임 시작을 누르면 바람 공격이 시작된다.
+            게임 시작을 누르면 무한 생존이 시작된다.
           </div>
-        </div>
-
-        <div class="card mode-lab-only" id="labInfo">
-          <h2>비교 실험</h2>
-          <p class="tiny">
-            회색: 무제어 / 주황: P / 하늘: PD / 분홍: PID<br>
-            같은 조건에서 어떤 제어가 가장 안정적인지 비교한다.
-          </p>
         </div>
       </aside>
     </main>
@@ -462,17 +613,18 @@
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    const kpInput = document.getElementById("kp");
-    const kdInput = document.getElementById("kd");
-    const kiInput = document.getElementById("ki");
-
     const kpValue = document.getElementById("kpValue");
     const kdValue = document.getElementById("kdValue");
     const kiValue = document.getElementById("kiValue");
 
+    const kpFill = document.getElementById("kpFill");
+    const kdFill = document.getElementById("kdFill");
+    const kiFill = document.getElementById("kiFill");
+
     const startBtn = document.getElementById("startBtn");
     const resetBtn = document.getElementById("resetBtn");
     const gustBtn = document.getElementById("gustBtn");
+    const cardBtn = document.getElementById("cardBtn");
 
     const gameModeBtn = document.getElementById("gameModeBtn");
     const labModeBtn = document.getElementById("labModeBtn");
@@ -485,28 +637,63 @@
     const waveText = document.getElementById("waveText");
     const timeText = document.getElementById("timeText");
     const hpFill = document.getElementById("hpFill");
+    const bossFill = document.getElementById("bossFill");
+    const bossInfo = document.getElementById("bossInfo");
     const missionText = document.getElementById("missionText");
     const resultText = document.getElementById("resultText");
-    const labInfo = document.getElementById("labInfo");
+    const cardSelect = document.getElementById("cardSelect");
+    const cards = document.getElementById("cards");
+    const buffList = document.getElementById("buffList");
 
     const G = 9.81;
     const L = 1.35;
     const MASS = 1;
-    const MAX_TORQUE = 38;
+    const MAX_TORQUE = 40;
+
+    const maxKp = 100;
+    const maxKd = 55;
+    const maxKi = 25;
+
+    let kpGauge = 0;
+    let kdGauge = 0;
+    let kiGauge = 0;
+
+    const keys = {
+      q: false,
+      w: false,
+      e: false
+    };
 
     let mode = "game";
     let running = false;
+    let pausedForCard = false;
     let lastTime = 0;
+
     let gameTime = 0;
     let score = 0;
     let combo = 0;
     let wave = 1;
     let hp = 100;
+
     let shake = 0;
-    let nextGust = 2.5;
+    let nextGust = 1.8;
+    let nextCardTime = 12;
+    let nextBossTime = 30;
+
+    let windField = 0;
+    let windTarget = 0;
+    let chaosTimer = 0;
+
+    let bossActive = false;
+    let bossTimer = 0;
+    let bossDuration = 8;
+    let bossType = "NONE";
+    let bossLevel = 1;
+
     let floatingTexts = [];
     let particles = [];
     let gusts = [];
+    let buffs = [];
 
     function degToRad(d) {
       return d * Math.PI / 180;
@@ -538,13 +725,13 @@
         this.stableTimer = 0;
       }
 
-      impulse(power) {
-        const dir = Math.random() > 0.5 ? 1 : -1;
+      impulse(power, direction) {
+        let dir = direction || (Math.random() > 0.5 ? 1 : -1);
         this.omega += dir * power;
         makeBurst(dir > 0 ? "#38bdf8" : "#f472b6");
       }
 
-      update(dt, gains, wind) {
+      update(dt, gains, wind, dampingBoost) {
         let error = -this.theta;
         this.integral += error * dt;
         this.integral = clamp(this.integral, -2.6, 2.6);
@@ -578,9 +765,11 @@
 
         torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
 
+        let damping = 0.085 + dampingBoost;
+
         let alpha =
           -(G / L) * Math.sin(this.theta)
-          - 0.09 * this.omega
+          - damping * this.omega
           + torque / (MASS * L * L)
           + wind;
 
@@ -609,55 +798,183 @@
       new Robot("PID", "#f472b6", "PID")
     ];
 
+    const itemPool = [
+      {
+        icon: "🛡️",
+        name: "자이로 실드",
+        desc: "12초 동안 큰 각도에서 받는 피해를 줄인다.",
+        apply: function () {
+          addBuff("shield", "자이로 실드", 12);
+        }
+      },
+      {
+        icon: "🧊",
+        name: "브레이크 냉각",
+        desc: "10초 동안 W 브레이크 효과가 증가한다.",
+        apply: function () {
+          addBuff("dBoost", "브레이크 냉각", 10);
+        }
+      },
+      {
+        icon: "⚡",
+        name: "모터 과충전",
+        desc: "8초 동안 Q 힘 효과가 증가하지만 흔들리면 위험하다.",
+        apply: function () {
+          addBuff("pBoost", "모터 과충전", 8);
+        }
+      },
+      {
+        icon: "🧠",
+        name: "오차 기억 장치",
+        desc: "12초 동안 E 기억 보정 효과가 증가한다.",
+        apply: function () {
+          addBuff("iBoost", "오차 기억 장치", 12);
+        }
+      },
+      {
+        icon: "💚",
+        name: "긴급 수리",
+        desc: "HP를 25 회복한다.",
+        apply: function () {
+          hp = clamp(hp + 25, 0, 100);
+          addText("HP +25", "#86efac");
+        }
+      },
+      {
+        icon: "🌪️",
+        name: "바람 분석기",
+        desc: "15초 동안 바람의 세기가 약해진다.",
+        apply: function () {
+          addBuff("windCut", "바람 분석기", 15);
+        }
+      },
+      {
+        icon: "⏱️",
+        name: "보스 지연 장치",
+        desc: "다음 보스 등장을 8초 늦춘다.",
+        apply: function () {
+          nextBossTime += 8;
+          addText("보스 지연 +8초", "#fef3c7");
+        }
+      },
+      {
+        icon: "🎯",
+        name: "중심 복귀",
+        desc: "현재 흔들림을 즉시 조금 줄인다.",
+        apply: function () {
+          player.theta *= 0.5;
+          player.omega *= 0.55;
+          addText("중심 복귀!", "#93c5fd");
+          makeBurst("#93c5fd");
+        }
+      }
+    ];
+
+    function getBuff(type) {
+      return buffs.find(b => b.type === type);
+    }
+
+    function addBuff(type, name, time) {
+      const old = getBuff(type);
+      if (old) {
+        old.time = Math.max(old.time, time);
+      } else {
+        buffs.push({ type, name, time });
+      }
+
+      addText(name + "!", "#fef3c7");
+      updateBuffList();
+    }
+
+    function updateBuffs(dt) {
+      buffs.forEach(b => {
+        b.time -= dt;
+      });
+
+      buffs = buffs.filter(b => b.time > 0);
+      updateBuffList();
+    }
+
+    function updateBuffList() {
+      if (buffs.length === 0) {
+        buffList.innerHTML = "<span class='buff'>효과 없음</span>";
+        return;
+      }
+
+      buffList.innerHTML = buffs.map(b => {
+        return "<span class='buff'>" + b.name + " " + b.time.toFixed(0) + "초</span>";
+      }).join("");
+    }
+
     function getGains() {
-      return {
-        kp: Number(kpInput.value),
-        kd: Number(kdInput.value),
-        ki: Number(kiInput.value)
-      };
+      let kp = kpGauge;
+      let kd = kdGauge;
+      let ki = kiGauge;
+
+      if (getBuff("pBoost")) kp *= 1.25;
+      if (getBuff("dBoost")) kd *= 1.35;
+      if (getBuff("iBoost")) ki *= 1.3;
+
+      return { kp, kd, ki };
     }
 
-    function updateLabels() {
-      kpValue.textContent = kpInput.value;
-      kdValue.textContent = kdInput.value;
-      kiValue.textContent = kiInput.value;
+    function updateSkillGauges(dt) {
+      if (pausedForCard) return;
+
+      const kpRise = 115;
+      const kdRise = 75;
+      const kiRise = 35;
+
+      const kpFall = 90;
+      const kdFall = 65;
+      const kiFall = 28;
+
+      if (keys.q) kpGauge += kpRise * dt;
+      else kpGauge -= kpFall * dt;
+
+      if (keys.w) kdGauge += kdRise * dt;
+      else kdGauge -= kdFall * dt;
+
+      if (keys.e) kiGauge += kiRise * dt;
+      else kiGauge -= kiFall * dt;
+
+      kpGauge = clamp(kpGauge, 0, maxKp);
+      kdGauge = clamp(kdGauge, 0, maxKd);
+      kiGauge = clamp(kiGauge, 0, maxKi);
+
+      updateGaugeUI();
     }
 
-    [kpInput, kdInput, kiInput].forEach(input => {
-      input.addEventListener("input", updateLabels);
-    });
+    function updateGaugeUI() {
+      kpValue.textContent = kpGauge.toFixed(0);
+      kdValue.textContent = kdGauge.toFixed(0);
+      kiValue.textContent = kiGauge.toFixed(0);
+
+      kpFill.style.width = (kpGauge / maxKp * 100) + "%";
+      kdFill.style.width = (kdGauge / maxKd * 100) + "%";
+      kiFill.style.width = (kiGauge / maxKi * 100) + "%";
+    }
 
     document.addEventListener("keydown", e => {
-      if (e.key.toLowerCase() === "q") {
-        kpInput.value = clamp(Number(kpInput.value) + 3, 0, 100);
-      }
+      const key = e.key.toLowerCase();
 
-      if (e.key.toLowerCase() === "w") {
-        kdInput.value = clamp(Number(kdInput.value) + 2, 0, 55);
-      }
+      if (key === "q") keys.q = true;
+      if (key === "w") keys.w = true;
+      if (key === "e") keys.e = true;
+    });
 
-      if (e.key.toLowerCase() === "e") {
-        kiInput.value = clamp(Number(kiInput.value) + 1, 0, 25);
-      }
+    document.addEventListener("keyup", e => {
+      const key = e.key.toLowerCase();
 
-      if (e.key.toLowerCase() === "a") {
-        kpInput.value = clamp(Number(kpInput.value) - 3, 0, 100);
-      }
-
-      if (e.key.toLowerCase() === "s") {
-        kdInput.value = clamp(Number(kdInput.value) - 2, 0, 55);
-      }
-
-      if (e.key.toLowerCase() === "d") {
-        kiInput.value = clamp(Number(kiInput.value) - 1, 0, 25);
-      }
-
-      updateLabels();
+      if (key === "q") keys.q = false;
+      if (key === "w") keys.w = false;
+      if (key === "e") keys.e = false;
     });
 
     startBtn.addEventListener("click", () => {
       running = true;
-      resultText.innerHTML = "바람 공격이 시작됐다. 각도를 0도 근처로 유지해라!";
+      pausedForCard = false;
+      resultText.innerHTML = "무한 생존 시작! Q, W, E를 누르는 타이밍으로 로봇을 버텨라.";
       topMessage.textContent = "SURVIVE!";
     });
 
@@ -665,9 +982,15 @@
 
     gustBtn.addEventListener("click", () => {
       if (mode === "game") {
-        spawnGust(true);
+        spawnGust(true, 1.3);
       } else {
-        labRobots.forEach(r => r.impulse(2.5));
+        labRobots.forEach(r => r.impulse(3.2));
+      }
+    });
+
+    cardBtn.addEventListener("click", () => {
+      if (mode === "game") {
+        openCardSelect();
       }
     });
 
@@ -675,8 +998,7 @@
       mode = "game";
       gameModeBtn.classList.add("active");
       labModeBtn.classList.remove("active");
-      labInfo.style.display = "none";
-      missionText.textContent = "30초 동안 로봇을 넘어지지 않게 버텨라.";
+      missionText.innerHTML = "최대한 오래 버텨라. 30초마다 보스 바람이 등장한다.";
       resetGame();
     });
 
@@ -684,49 +1006,213 @@
       mode = "lab";
       labModeBtn.classList.add("active");
       gameModeBtn.classList.remove("active");
-      labInfo.style.display = "block";
-      missionText.textContent = "같은 PID 값으로 무제어, P, PD, PID를 비교해보자.";
+      missionText.innerHTML = "같은 입력 게이지로 무제어, P, PD, PID를 비교해보자.";
       resetGame();
       running = true;
-      resultText.innerHTML = "비교 실험 중. 분홍색 PID 로봇이 얼마나 안정적인지 보자.";
+      resultText.innerHTML = "비교 실험 중. Q/W/E를 눌렀을 때 PID 로봇이 어떻게 안정되는지 보자.";
     });
 
     function resetGame() {
       running = false;
+      pausedForCard = false;
+      cardSelect.classList.remove("show");
+
       gameTime = 0;
       score = 0;
       combo = 0;
       wave = 1;
       hp = 100;
+
       shake = 0;
-      nextGust = 2.5;
+      nextGust = 1.8;
+      nextCardTime = 12;
+      nextBossTime = 30;
+
+      windField = 0;
+      windTarget = 0;
+      chaosTimer = 0;
+
+      bossActive = false;
+      bossTimer = 0;
+      bossDuration = 8;
+      bossType = "NONE";
+      bossLevel = 1;
+
       floatingTexts = [];
       particles = [];
       gusts = [];
+      buffs = [];
+
+      kpGauge = 0;
+      kdGauge = 0;
+      kiGauge = 0;
+
+      keys.q = false;
+      keys.w = false;
+      keys.e = false;
 
       player.reset(24);
       labRobots.forEach(r => r.reset(24));
 
+      updateGaugeUI();
+      updateBuffList();
+
       topMessage.textContent = "READY";
-      resultText.innerHTML = "게임 시작을 누르면 바람 공격이 시작된다.";
+      resultText.innerHTML = "게임 시작을 누르면 무한 생존이 시작된다.";
       updateHUD();
     }
 
-    function spawnGust(manual) {
-      const power = 1.7 + wave * 0.45 + Math.random() * 0.9;
-      player.impulse(power);
+    function openCardSelect() {
+      if (!running && mode === "game") return;
 
-      const side = Math.random() > 0.5 ? "left" : "right";
-      gusts.push({
-        x: side === "left" ? -80 : canvas.width + 80,
-        y: canvas.height * (0.28 + Math.random() * 0.35),
-        vx: side === "left" ? 260 : -260,
-        life: 1.0,
-        side
+      pausedForCard = true;
+      cards.innerHTML = "";
+
+      const options = pickRandomItems(3);
+
+      options.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "item-card";
+        el.innerHTML =
+          "<div class='icon'>" + item.icon + "</div>" +
+          "<h3>" + item.name + "</h3>" +
+          "<p>" + item.desc + "</p>";
+
+        el.addEventListener("click", () => {
+          item.apply();
+          pausedForCard = false;
+          cardSelect.classList.remove("show");
+          resultText.innerHTML = "아이템 카드 선택 완료. 다시 버텨보자!";
+        });
+
+        cards.appendChild(el);
       });
 
-      shake = 10;
-      addText(manual ? "수동 바람!" : "바람 공격!", "#93c5fd");
+      cardSelect.classList.add("show");
+    }
+
+    function pickRandomItems(count) {
+      const pool = [...itemPool];
+      const result = [];
+
+      while (result.length < count && pool.length > 0) {
+        const index = Math.floor(Math.random() * pool.length);
+        result.push(pool.splice(index, 1)[0]);
+      }
+
+      return result;
+    }
+
+    function spawnGust(manual, multiplier) {
+      const difficulty = 1 + gameTime / 45;
+      let power = (1.7 + wave * 0.35 + Math.random() * 1.2) * difficulty;
+
+      if (getBuff("windCut")) {
+        power *= 0.65;
+      }
+
+      if (multiplier) power *= multiplier;
+
+      const dir = Math.random() > 0.5 ? 1 : -1;
+
+      player.impulse(power, dir);
+
+      gusts.push({
+        x: dir > 0 ? -80 : canvas.width + 80,
+        y: canvas.height * (0.24 + Math.random() * 0.42),
+        vx: dir > 0 ? 300 : -300,
+        life: 1.0,
+        big: manual
+      });
+
+      shake = Math.max(shake, 8 + wave * 0.5);
+      addText(manual ? "강풍 테스트!" : "변칙 바람!", "#93c5fd");
+    }
+
+    function startBoss() {
+      bossActive = true;
+      bossTimer = 0;
+      bossLevel = Math.floor(gameTime / 30);
+      bossDuration = 7 + bossLevel * 1.2;
+
+      const types = ["REVERSAL", "PULSE", "LOCK", "SPIRAL"];
+      bossType = types[(bossLevel - 1) % types.length];
+
+      shake = 18;
+
+      if (bossType === "REVERSAL") {
+        topMessage.textContent = "BOSS: 역풍 반전";
+        resultText.innerHTML =
+          "<span class='boss-text'>보스 바람!</span><br>바람 방향이 계속 뒤집힌다. W 브레이크로 흔들림을 잡아라.";
+      }
+
+      if (bossType === "PULSE") {
+        topMessage.textContent = "BOSS: 충격파";
+        resultText.innerHTML =
+          "<span class='boss-text'>보스 바람!</span><br>짧고 강한 충격이 연속으로 온다. Q와 W를 번갈아 눌러라.";
+      }
+
+      if (bossType === "LOCK") {
+        topMessage.textContent = "BOSS: 스킬 봉인";
+        resultText.innerHTML =
+          "<span class='boss-text'>보스 바람!</span><br>스킬 게이지가 강제로 흔들린다. Q/W/E를 계속 다시 눌러라.";
+      }
+
+      if (bossType === "SPIRAL") {
+        topMessage.textContent = "BOSS: 회오리";
+        resultText.innerHTML =
+          "<span class='boss-text'>보스 바람!</span><br>한 방향으로 계속 밀다가 갑자기 반전한다. E를 짧게 활용해라.";
+      }
+
+      addText("BOSS WIND!", "#facc15");
+      makeBurst("#facc15");
+    }
+
+    function updateBoss(dt) {
+      if (!bossActive) return 0;
+
+      bossTimer += dt;
+      let bossWind = 0;
+      const levelPower = 0.55 + bossLevel * 0.18;
+
+      if (bossType === "REVERSAL") {
+        bossWind = Math.sin(bossTimer * 5.2) * levelPower;
+      }
+
+      if (bossType === "PULSE") {
+        bossWind = Math.sin(bossTimer * 13) > 0.55 ? levelPower * 2.2 : -levelPower * 0.4;
+
+        if (Math.random() < dt * 2.2) {
+          player.impulse(1.0 + bossLevel * 0.25, Math.random() > 0.5 ? 1 : -1);
+        }
+      }
+
+      if (bossType === "LOCK") {
+        bossWind = Math.sin(bossTimer * 4) * levelPower * 0.8;
+
+        if (Math.random() < dt * 1.8) {
+          kpGauge *= 0.65;
+          kdGauge *= 0.72;
+          kiGauge *= 0.55;
+          addText("게이지 교란!", "#fca5a5");
+        }
+      }
+
+      if (bossType === "SPIRAL") {
+        const dir = bossTimer < bossDuration / 2 ? 1 : -1;
+        bossWind = dir * (levelPower * 1.15 + bossTimer * 0.03);
+      }
+
+      if (bossTimer >= bossDuration) {
+        bossActive = false;
+        nextBossTime = gameTime + 30;
+        topMessage.textContent = "BOSS CLEAR!";
+        addText("보스 클리어!", "#86efac");
+        score += 800 + bossLevel * 250;
+        openCardSelect();
+      }
+
+      return bossWind;
     }
 
     function addText(text, color) {
@@ -741,12 +1227,12 @@
     }
 
     function makeBurst(color) {
-      for (let i = 0; i < 24; i++) {
+      for (let i = 0; i < 28; i++) {
         particles.push({
           x: canvas.width / 2,
           y: canvas.height * 0.55,
-          vx: (Math.random() - 0.5) * 260,
-          vy: (Math.random() - 0.5) * 220,
+          vx: (Math.random() - 0.5) * 300,
+          vy: (Math.random() - 0.5) * 240,
           r: 2 + Math.random() * 3,
           color,
           life: 0.8
@@ -755,67 +1241,102 @@
     }
 
     function updateGame(dt) {
-      if (!running) return;
+      updateSkillGauges(dt);
+
+      if (!running || pausedForCard) return;
 
       gameTime += dt;
+      wave = Math.floor(gameTime / 15) + 1;
+
+      updateBuffs(dt);
 
       if (mode === "game") {
-        const gains = getGains();
-
-        wave = Math.floor(gameTime / 10) + 1;
         nextGust -= dt;
+        chaosTimer -= dt;
 
-        const wind = Math.sin(gameTime * 0.8) * 0.12 * wave;
-        player.update(dt, gains, wind);
-
-        if (nextGust <= 0) {
-          spawnGust(false);
-          nextGust = Math.max(1.2, 3.3 - wave * 0.35);
+        if (chaosTimer <= 0) {
+          const difficulty = 1 + gameTime / 60;
+          windTarget = (Math.random() - 0.5) * 0.55 * difficulty;
+          chaosTimer = 0.35 + Math.random() * 1.1;
         }
 
+        windField += (windTarget - windField) * dt * 2.1;
+
+        let totalWind =
+          windField +
+          Math.sin(gameTime * (1.8 + wave * 0.08)) * 0.16 * wave +
+          Math.sin(gameTime * 4.7) * 0.08;
+
+        if (gameTime >= nextBossTime && !bossActive) {
+          startBoss();
+        }
+
+        totalWind += updateBoss(dt);
+
+        if (nextGust <= 0 && !bossActive) {
+          spawnGust(false, 1);
+          nextGust = Math.max(0.75, 2.2 - wave * 0.08 + Math.random() * 1.0);
+        }
+
+        if (gameTime >= nextCardTime && !bossActive) {
+          nextCardTime = gameTime + 22;
+          openCardSelect();
+        }
+
+        let dampingBoost = getBuff("dBoost") ? 0.04 : 0;
+
+        player.update(dt, getGains(), totalWind, dampingBoost);
+
         const angle = Math.abs(radToDeg(player.theta));
+        const gains = getGains();
+
+        let penalty = 1;
+
+        if (gains.kp > 75 && angle > 8) penalty += 0.4;
+        if (gains.ki > 12 && angle > 10) penalty += 0.4;
+        if (gains.kd < 5 && angle > 12) penalty += 0.5;
 
         if (angle < 3) {
-          combo += dt * 10;
-          score += Math.round(8 + combo * 0.04);
-          if (Math.floor(combo) % 50 === 0 && combo > 0) {
+          combo += dt * 11;
+          score += Math.round(9 + combo * 0.045 + wave);
+
+          if (Math.floor(combo) % 60 === 0 && combo > 0) {
             makeBurst("#22c55e");
           }
         } else if (angle < 10) {
-          score += 3;
-        } else if (angle > 25) {
-          hp -= dt * (6 + wave * 2);
+          score += 3 + wave;
+        } else if (angle > 24) {
+          hp -= dt * (5 + wave * 1.5) * penalty;
           combo = 0;
-          shake = Math.max(shake, 5);
+          shake = Math.max(shake, 6);
         }
 
-        if (angle > 48) {
-          hp -= dt * 25;
+        if (angle > 44) {
+          hp -= dt * (20 + wave * 2.4) * penalty;
           combo = 0;
+          shake = Math.max(shake, 12);
+        }
+
+        if (getBuff("shield")) {
+          hp += dt * 2.2;
+          hp = clamp(hp, 0, 100);
         }
 
         hp = clamp(hp, 0, 100);
-
-        if (gameTime >= 30) {
-          running = false;
-          topMessage.textContent = "CLEAR!";
-          resultText.innerHTML =
-            "<span class='success'>클리어!</span><br>30초 동안 버텼다. PID 값 조절 성공!";
-          addText("MISSION CLEAR!", "#86efac");
-          makeBurst("#86efac");
-        }
 
         if (hp <= 0) {
           running = false;
           topMessage.textContent = "FAILED";
           resultText.innerHTML =
-            "<span class='danger-text'>실패!</span><br>로봇이 너무 많이 흔들렸다. Kd를 올려 브레이크를 더 줘보자.";
+            "<span class='danger-text'>실패!</span><br>" +
+            "생존 시간: " + gameTime.toFixed(1) + "초<br>" +
+            "Q/W/E를 누르는 타이밍으로 다시 도전해보자.";
           addText("ROBOT DOWN", "#fca5a5");
         }
       } else {
         const gains = getGains();
-        const wind = Math.sin(gameTime * 0.8) * 0.15;
-        labRobots.forEach(r => r.update(dt, gains, wind));
+        const wind = Math.sin(gameTime * 1.1) * 0.22;
+        labRobots.forEach(r => r.update(dt, gains, wind, 0));
       }
     }
 
@@ -836,7 +1357,7 @@
 
       gusts.forEach(g => {
         g.x += g.vx * dt;
-        g.life -= dt * 0.7;
+        g.life -= dt * 0.75;
       });
       gusts = gusts.filter(g => g.life > 0);
 
@@ -858,6 +1379,20 @@
       } else {
         hpFill.style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
       }
+
+      let bossRatio;
+
+      if (bossActive) {
+        bossRatio = 100 * (1 - bossTimer / bossDuration);
+        bossFill.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
+        bossInfo.textContent = "보스 진행 중: " + bossType;
+      } else {
+        bossRatio = 100 * clamp((30 - (nextBossTime - gameTime)) / 30, 0, 1);
+        bossFill.style.background = "linear-gradient(90deg, #2563eb, #facc15)";
+        bossInfo.textContent = "다음 보스까지 " + Math.max(0, nextBossTime - gameTime).toFixed(1) + "초";
+      }
+
+      bossFill.style.width = bossRatio + "%";
 
       const angle = mode === "game"
         ? radToDeg(player.theta)
@@ -992,18 +1527,24 @@
 
       if (mode === "game") {
         drawDangerZones();
+        drawBossAura();
         drawRobot(player, w / 2, groundY, Math.min(245, h * 0.43), "PID 로봇");
-
         drawMiniGraph(player.history, player.color);
 
-        ctx.fillStyle = "rgba(255,255,255,0.88)";
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
         ctx.textAlign = "center";
         ctx.font = "bold 28px Arial";
-        ctx.fillText("30초 버티기", w / 2, 78);
+        ctx.fillText("무한 생존", w / 2, 78);
 
         ctx.font = "14px Arial";
         ctx.fillStyle = "#cbd5e1";
-        ctx.fillText("0도에 가까울수록 콤보 상승 / 크게 흔들리면 HP 감소", w / 2, 104);
+
+        if (bossActive) {
+          ctx.fillStyle = "#facc15";
+          ctx.fillText("보스 바람 진행 중: " + bossType, w / 2, 104);
+        } else {
+          ctx.fillText("Q/W/E를 누르는 타이밍으로 PID를 순간 조작", w / 2, 104);
+        }
       } else {
         drawLabScene();
       }
@@ -1021,20 +1562,44 @@
       const groundY = h * 0.72;
       const gap = w / 5;
 
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
       ctx.textAlign = "center";
       ctx.font = "bold 28px Arial";
       ctx.fillText("PID 제어 비교 실험", w / 2, 70);
 
       ctx.font = "14px Arial";
       ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("같은 값을 넣었을 때 어떤 로봇이 가장 빨리 안정되는지 비교", w / 2, 96);
+      ctx.fillText("같은 입력 게이지에서 어떤 로봇이 안정적인지 비교", w / 2, 96);
 
       labRobots.forEach((r, i) => {
         drawRobot(r, gap * (i + 1), groundY, Math.min(150, h * 0.31), r.name);
       });
 
       drawMultiGraph();
+    }
+
+    function drawBossAura() {
+      if (!bossActive) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h * 0.42;
+      const radius = 120 + Math.sin(gameTime * 8) * 18;
+
+      const gradient = ctx.createRadialGradient(cx, cy, 20, cx, cy, radius);
+      gradient.addColorStop(0, "rgba(250, 204, 21, 0.28)");
+      gradient.addColorStop(1, "rgba(239, 68, 68, 0)");
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#facc15";
+      ctx.textAlign = "center";
+      ctx.font = "bold 42px Arial";
+      ctx.fillText("🌪️", cx, cy);
     }
 
     function drawDangerZones() {
@@ -1070,7 +1635,7 @@
       const gw = 220;
       const gh = 90;
 
-      ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.82)";
       roundRect(gx, gy, gw, gh, 14);
       ctx.fill();
 
@@ -1148,10 +1713,10 @@
     function drawGusts() {
       gusts.forEach(g => {
         ctx.globalAlpha = clamp(g.life, 0, 1);
-        ctx.fillStyle = "#93c5fd";
-        ctx.font = "bold 36px Arial";
+        ctx.fillStyle = g.big ? "#facc15" : "#93c5fd";
+        ctx.font = g.big ? "bold 44px Arial" : "bold 34px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(g.side === "left" ? "💨" : "💨", g.x, g.y);
+        ctx.fillText("💨", g.x, g.y);
         ctx.globalAlpha = 1;
       });
     }
@@ -1194,6 +1759,7 @@
 
     function loop(timestamp) {
       if (!lastTime) lastTime = timestamp;
+
       let dt = (timestamp - lastTime) / 1000;
       lastTime = timestamp;
       dt = Math.min(dt, 0.03);
@@ -1207,7 +1773,7 @@
     }
 
     resize();
-    updateLabels();
+    updateGaugeUI();
     resetGame();
     requestAnimationFrame(loop);
   </script>
