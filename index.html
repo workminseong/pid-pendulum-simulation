@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PID 로봇 디펜스</title>
-  <!-- VERSION_QW_AUTO_KI_TUTORIAL_FINAL_20260706 -->
+  <title>PID 로봇 디펜스 : 안정판</title>
+  <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_20260706 -->
 
   <style>
     * { box-sizing: border-box; }
@@ -13,7 +13,7 @@
       margin: 0;
       height: 100vh;
       overflow: hidden;
-      background: radial-gradient(circle at top, #1e293b, #020617 72%);
+      background: #020617;
       color: white;
       font-family: Arial, "Noto Sans KR", sans-serif;
     }
@@ -21,7 +21,7 @@
     .app {
       height: 100vh;
       display: grid;
-      grid-template-rows: 68px 1fr;
+      grid-template-rows: 72px 1fr;
     }
 
     header {
@@ -29,18 +29,21 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 20px;
-      background: rgba(2, 6, 23, 0.96);
+      background: #020617;
       border-bottom: 1px solid #334155;
     }
 
     .title h1 {
       margin: 0;
-      font-size: 23px;
+      font-size: 24px;
+      letter-spacing: -0.5px;
     }
 
     .title span {
+      display: block;
+      margin-top: 5px;
       font-size: 13px;
-      color: #94a3b8;
+      color: #93c5fd;
     }
 
     .top-buttons {
@@ -49,100 +52,95 @@
     }
 
     button {
-      border: none;
+      border: 0;
       border-radius: 12px;
       padding: 10px 14px;
       background: #2563eb;
       color: white;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
       box-shadow: 0 6px 16px rgba(0,0,0,0.25);
     }
 
     button:hover { filter: brightness(1.12); }
-    button.secondary { background: #334155; }
     button.green { background: #16a34a; }
     button.red { background: #dc2626; }
-    button.purple { background: #7e22ce; }
-    button.yellow { background: #ca8a04; }
-
-    button.active {
-      outline: 2px solid #93c5fd;
-      background: #1d4ed8;
-    }
+    button.secondary { background: #334155; }
+    button.active { outline: 2px solid #93c5fd; background: #1d4ed8; }
 
     .main {
-      display: grid;
-      grid-template-columns: 300px 1fr 310px;
       min-height: 0;
+      display: grid;
+      grid-template-columns: 300px 1fr 300px;
     }
 
     .panel {
       padding: 14px;
-      background: rgba(15, 23, 42, 0.92);
+      background: #111827;
       border-right: 1px solid #334155;
       overflow: hidden;
     }
 
     .panel.right {
-      border-right: none;
+      border-right: 0;
       border-left: 1px solid #334155;
     }
 
     .card {
-      background: rgba(30, 41, 59, 0.96);
+      background: #1e293b;
       border: 1px solid #334155;
       border-radius: 16px;
-      padding: 13px;
+      padding: 14px;
       margin-bottom: 12px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.2);
     }
 
     .card h2 {
-      margin: 0 0 10px;
-      font-size: 16px;
+      margin: 0 0 12px;
       color: #dbeafe;
+      font-size: 17px;
     }
 
     .tiny {
-      margin: 6px 0;
+      margin: 8px 0 0;
       color: #cbd5e1;
       font-size: 13px;
-      line-height: 1.45;
+      line-height: 1.55;
     }
 
     .key {
       display: inline-block;
-      min-width: 28px;
+      min-width: 30px;
       text-align: center;
       padding: 3px 7px;
+      margin-right: 6px;
+      border-radius: 8px;
       background: #020617;
       border: 1px solid #475569;
-      border-radius: 7px;
-      color: #e2e8f0;
+      color: #86efac;
       font-weight: 900;
-      margin-right: 4px;
     }
 
-    .skill-box { margin-top: 11px; }
+    .skill-box { margin-top: 12px; }
 
     .skill-label {
       display: flex;
       justify-content: space-between;
-      font-size: 13px;
-      font-weight: 800;
-      color: #cbd5e1;
-      margin-bottom: 5px;
+      align-items: center;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 6px;
     }
 
     .skill-label span:last-child { color: #86efac; }
 
     .skill-bar {
-      height: 18px;
-      background: #020617;
-      border: 1px solid #334155;
+      height: 20px;
       border-radius: 999px;
       overflow: hidden;
+      background: #020617;
+      border: 1px solid #334155;
     }
 
     .skill-fill {
@@ -155,105 +153,51 @@
     .kd-fill { background: linear-gradient(90deg, #38bdf8, #2563eb); }
     .ki-fill { background: linear-gradient(90deg, #f472b6, #be185d); }
 
-    .pid-help {
-      display: grid;
-      gap: 8px;
+    .skip-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 10px;
+      padding: 11px;
+      border-radius: 12px;
+      background: #020617;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .skip-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: #22c55e;
     }
 
     .pid-chip {
       display: grid;
-      grid-template-columns: 38px 1fr;
-      gap: 8px;
-      align-items: center;
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 8px;
-      font-size: 13px;
-      color: #cbd5e1;
-    }
-
-    .pid-chip b {
-      font-size: 22px;
-      text-align: center;
-    }
-
-    .p { color: #fb923c; }
-    .d { color: #38bdf8; }
-    .i { color: #f472b6; }
-
-
-    .skip-row {
-      display: flex;
+      grid-template-columns: 40px 1fr;
       align-items: center;
       gap: 8px;
-      margin-top: 10px;
+      margin-bottom: 8px;
       padding: 9px;
       border-radius: 12px;
       background: #020617;
       border: 1px solid #334155;
       color: #cbd5e1;
       font-size: 13px;
-      font-weight: 800;
     }
 
-    .skip-row input {
-      width: 17px;
-      height: 17px;
-      accent-color: #22c55e;
-    }
-
-    .tutorial-overlay {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 12;
-      background: rgba(2, 6, 23, 0.58);
-      backdrop-filter: blur(6px);
-    }
-
-    .tutorial-overlay.show {
-      display: flex;
-    }
-
-    .tutorial-box {
-      width: min(620px, 90vw);
-      background: linear-gradient(180deg, #1e293b, #020617);
-      border: 1px solid #60a5fa;
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-      text-align: center;
-    }
-
-    .tutorial-box h2 {
-      margin: 0 0 10px;
-      color: #fef3c7;
-      font-size: 25px;
-    }
-
-    .tutorial-box p {
-      color: #dbeafe;
-      line-height: 1.65;
-      font-size: 15px;
-      margin: 10px 0 16px;
-    }
-
-    .tutorial-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+    .pid-chip b { font-size: 23px; text-align: center; }
+    .p { color: #fb923c; }
+    .d { color: #38bdf8; }
+    .i { color: #f472b6; }
 
     .stage {
       position: relative;
       min-width: 0;
       min-height: 0;
       background:
-        radial-gradient(circle at center, rgba(37, 99, 235, 0.16), transparent 42%),
+        radial-gradient(circle at center, rgba(37, 99, 235, 0.13), transparent 42%),
         #020617;
     }
 
@@ -274,27 +218,70 @@
     }
 
     .pill {
-      background: rgba(15, 23, 42, 0.82);
-      border: 1px solid #334155;
-      padding: 8px 12px;
+      padding: 8px 13px;
       border-radius: 999px;
-      font-size: 13px;
-      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      font-size: 14px;
       backdrop-filter: blur(8px);
+    }
+
+    .tutorial-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.64);
+      backdrop-filter: blur(6px);
+    }
+
+    .tutorial-overlay.show { display: flex; }
+
+    .tutorial-box {
+      width: min(620px, 90vw);
+      padding: 22px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #1e293b, #020617);
+      border: 1px solid #60a5fa;
+      box-shadow: 0 32px 90px rgba(0,0,0,0.55);
+      text-align: center;
+    }
+
+    .tutorial-box h2 {
+      margin: 0 0 10px;
+      color: #fef3c7;
+      font-size: 25px;
+    }
+
+    .tutorial-box p {
+      color: #dbeafe;
+      font-size: 15px;
+      line-height: 1.7;
+      margin: 10px 0 18px;
+    }
+
+    .tutorial-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .hud-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 9px;
     }
 
     .hud-box {
+      padding: 10px;
+      text-align: center;
+      border-radius: 12px;
       background: #020617;
       border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 9px;
-      text-align: center;
     }
 
     .hud-box span {
@@ -304,129 +291,29 @@
 
     .hud-box b {
       display: block;
-      font-size: 21px;
-      margin-top: 3px;
+      margin-top: 4px;
+      font-size: 22px;
     }
 
     .bar {
-      height: 16px;
-      background: #020617;
-      border: 1px solid #334155;
+      height: 17px;
       border-radius: 999px;
       overflow: hidden;
-      margin-top: 6px;
+      background: #020617;
+      border: 1px solid #334155;
+      margin-top: 7px;
     }
 
     .fill {
-      height: 100%;
       width: 100%;
+      height: 100%;
       background: linear-gradient(90deg, #22c55e, #84cc16);
-      transition: width 0.1s linear;
+      transition: width 0.12s linear;
     }
 
-    .result {
-      min-height: 74px;
-      line-height: 1.45;
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-
-    .success { color: #86efac; font-weight: 900; }
     .danger-text { color: #fca5a5; font-weight: 900; }
     .boss-text { color: #facc15; font-weight: 900; }
-
-    .buff-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .buff {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px solid #475569;
-      color: #cbd5e1;
-      font-size: 12px;
-    }
-
-    .card-select {
-      position: absolute;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.72);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      backdrop-filter: blur(8px);
-    }
-
-    .card-select.show { display: flex; }
-
-    .card-modal {
-      width: min(860px, 92vw);
-      background: #0f172a;
-      border: 1px solid #475569;
-      border-radius: 22px;
-      padding: 20px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    }
-
-    .card-modal h2 {
-      margin: 0 0 8px;
-      font-size: 25px;
-      color: #fef3c7;
-      text-align: center;
-    }
-
-    .card-modal p {
-      margin: 0 0 16px;
-      color: #cbd5e1;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .item-card {
-      min-height: 190px;
-      border-radius: 18px;
-      padding: 16px;
-      background: linear-gradient(180deg, #1e293b, #020617);
-      border: 1px solid #475569;
-      cursor: pointer;
-      transition: transform 0.12s, border-color 0.12s;
-    }
-
-    .item-card:hover {
-      transform: translateY(-6px);
-      border-color: #93c5fd;
-    }
-
-    .item-card .icon {
-      font-size: 34px;
-      margin-bottom: 10px;
-    }
-
-    .item-card h3 {
-      margin: 0 0 8px;
-      color: #e0f2fe;
-      font-size: 17px;
-    }
-
-    .item-card p {
-      text-align: left;
-      font-size: 13px;
-      line-height: 1.5;
-      margin: 0;
-      color: #cbd5e1;
-    }
+    .success { color: #86efac; font-weight: 900; }
 
     @media (max-width: 1050px) {
       body { overflow: auto; }
@@ -440,82 +327,15 @@
       }
 
       .main { grid-template-columns: 1fr; }
-  
-    .skip-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-      padding: 9px;
-      border-radius: 12px;
-      background: #020617;
-      border: 1px solid #334155;
-      color: #cbd5e1;
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .skip-row input {
-      width: 17px;
-      height: 17px;
-      accent-color: #22c55e;
-    }
-
-    .tutorial-overlay {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 12;
-      background: rgba(2, 6, 23, 0.58);
-      backdrop-filter: blur(6px);
-    }
-
-    .tutorial-overlay.show {
-      display: flex;
-    }
-
-    .tutorial-box {
-      width: min(620px, 90vw);
-      background: linear-gradient(180deg, #1e293b, #020617);
-      border: 1px solid #60a5fa;
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: 0 30px 90px rgba(0,0,0,0.55);
-      text-align: center;
-    }
-
-    .tutorial-box h2 {
-      margin: 0 0 10px;
-      color: #fef3c7;
-      font-size: 25px;
-    }
-
-    .tutorial-box p {
-      color: #dbeafe;
-      line-height: 1.65;
-      font-size: 15px;
-      margin: 10px 0 16px;
-    }
-
-    .tutorial-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .stage { height: 650px; }
+      .stage { height: 650px; }
 
       .panel {
-        border-right: none;
+        border-right: 0;
         border-bottom: 1px solid #334155;
         overflow: visible;
       }
 
-      .panel.right { border-left: none; }
-      .cards { grid-template-columns: 1fr; }
+      .panel.right { border-left: 0; }
     }
   </style>
 </head>
@@ -524,8 +344,8 @@
   <div class="app">
     <header>
       <div class="title">
-        <h1>PID 로봇 디펜스</h1>
-        <span>VERSION_QW_AUTO_KI_TUTORIAL_FINAL_20260706 · Q/W 직접 조작 + Ki 자동 기억 + 웨이브0 튜토리얼</span>
+        <h1>PID 로봇 디펜스 : 안정판</h1>
+        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_20260706 · 캐릭터 항상 표시 · Q/W 조작 · Ki 자동 기억</span>
       </div>
 
       <div class="top-buttons">
@@ -569,9 +389,7 @@
             </div>
           </div>
 
-          <p class="tiny">
-            Q/W는 누르고 있을 때만 차오르고, Ki는 작은 값으로 자동 유지된다.
-          </p>
+          <p class="tiny">Q/W는 누르고 있을 때만 차오르고, Ki는 작은 값으로 자동 유지된다.</p>
         </div>
 
         <div class="card">
@@ -586,27 +404,9 @@
 
         <div class="card">
           <h2>PID 한 줄 이해</h2>
-          <div class="pid-help">
-            <div class="pid-chip">
-              <b class="p">P</b>
-              <span>기울어진 만큼 미는 힘</span>
-            </div>
-            <div class="pid-chip">
-              <b class="d">D</b>
-              <span>빠른 흔들림을 잡는 브레이크</span>
-            </div>
-            <div class="pid-chip">
-              <b class="i">I</b>
-              <span>작은 기울어짐을 자동 기억</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>현재 효과</h2>
-          <div class="buff-list" id="buffList">
-            <span class="buff">효과 없음</span>
-          </div>
+          <div class="pid-chip"><b class="p">P</b><span>기울어진 만큼 미는 힘</span></div>
+          <div class="pid-chip"><b class="d">D</b><span>빠른 흔들림을 잡는 브레이크</span></div>
+          <div class="pid-chip"><b class="i">I</b><span>작은 기울어짐을 자동 기억</span></div>
         </div>
       </aside>
 
@@ -616,14 +416,6 @@
         <div class="overlay">
           <div class="pill" id="topMessage">READY</div>
           <div class="pill" id="angleMessage">각도 0.0°</div>
-        </div>
-
-        <div class="card-select" id="cardSelect">
-          <div class="card-modal">
-            <h2>아이템 카드 선택</h2>
-            <p>웨이브를 버티기 위한 보조 능력 1개를 선택하자.</p>
-            <div class="cards" id="cards"></div>
-          </div>
         </div>
 
         <div class="tutorial-overlay" id="tutorialOverlay">
@@ -642,61 +434,25 @@
         <div class="card">
           <h2>상태</h2>
           <div class="hud-grid">
-            <div class="hud-box">
-              <span>점수</span>
-              <b id="scoreText">0</b>
-            </div>
-            <div class="hud-box">
-              <span>콤보</span>
-              <b id="comboText">0</b>
-            </div>
-            <div class="hud-box">
-              <span>현재 웨이브</span>
-              <b id="waveText">1</b>
-            </div>
-            <div class="hud-box">
-              <span>생존 시간</span>
-              <b id="timeText">0.0초</b>
-            </div>
-            <div class="hud-box">
-              <span>최고 기록</span>
-              <b id="bestTimeText">0.0초</b>
-            </div>
-            <div class="hud-box">
-              <span>최고 웨이브</span>
-              <b id="bestWaveText">1</b>
-            </div>
+            <div class="hud-box"><span>점수</span><b id="scoreText">0</b></div>
+            <div class="hud-box"><span>콤보</span><b id="comboText">0</b></div>
+            <div class="hud-box"><span>현재 웨이브</span><b id="waveText">1</b></div>
+            <div class="hud-box"><span>생존 시간</span><b id="timeText">0.0초</b></div>
+            <div class="hud-box"><span>최고 기록</span><b id="bestTimeText">0.0초</b></div>
+            <div class="hud-box"><span>최고 웨이브</span><b id="bestWaveText">1</b></div>
           </div>
         </div>
 
         <div class="card">
           <h2>로봇 HP</h2>
-          <div class="bar">
-            <div class="fill" id="hpFill"></div>
-          </div>
+          <div class="bar"><div class="fill" id="hpFill"></div></div>
           <p class="tiny">각도가 크게 흔들리면 HP가 줄어든다.</p>
         </div>
 
         <div class="card">
           <h2>보스 바람</h2>
-          <div class="bar">
-            <div class="fill" id="bossFill"></div>
-          </div>
-          <p class="tiny" id="bossInfo">30초마다 색다른 보스 바람이 등장한다.</p>
-        </div>
-
-        <div class="card">
-          <h2>미션</h2>
-          <div class="result" id="missionText">
-            1웨이브부터 시작한다. 웨이브가 오를수록 바람 간격은 짧아지고 보스는 강해진다.
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>판정</h2>
-          <div class="result" id="resultText">
-            게임 시작을 누르면 웨이브 생존전이 시작된다.
-          </div>
+          <div class="bar"><div class="fill" id="bossFill"></div></div>
+          <p class="tiny" id="bossInfo">30초마다 보스 바람이 등장한다.</p>
         </div>
       </aside>
     </main>
@@ -709,7 +465,6 @@
     const kpValue = document.getElementById("kpValue");
     const kdValue = document.getElementById("kdValue");
     const kiValue = document.getElementById("kiValue");
-
     const kpFill = document.getElementById("kpFill");
     const kdFill = document.getElementById("kdFill");
     const kiFill = document.getElementById("kiFill");
@@ -717,11 +472,6 @@
     const startBtn = document.getElementById("startBtn");
     const pauseBtn = document.getElementById("pauseBtn");
     const skipTutorial = document.getElementById("skipTutorial");
-    const tutorialOverlay = document.getElementById("tutorialOverlay");
-    const tutorialTitle = document.getElementById("tutorialTitle");
-    const tutorialText = document.getElementById("tutorialText");
-    const tutorialNextBtn = document.getElementById("tutorialNextBtn");
-    const tutorialSkipBtn = document.getElementById("tutorialSkipBtn");
 
     const gameModeBtn = document.getElementById("gameModeBtn");
     const labModeBtn = document.getElementById("labModeBtn");
@@ -738,15 +488,15 @@
     const hpFill = document.getElementById("hpFill");
     const bossFill = document.getElementById("bossFill");
     const bossInfo = document.getElementById("bossInfo");
-    const missionText = document.getElementById("missionText");
-    const resultText = document.getElementById("resultText");
-    const cardSelect = document.getElementById("cardSelect");
-    const cards = document.getElementById("cards");
-    const buffList = document.getElementById("buffList");
+
+    const tutorialOverlay = document.getElementById("tutorialOverlay");
+    const tutorialTitle = document.getElementById("tutorialTitle");
+    const tutorialText = document.getElementById("tutorialText");
+    const tutorialNextBtn = document.getElementById("tutorialNextBtn");
+    const tutorialSkipBtn = document.getElementById("tutorialSkipBtn");
 
     const G = 9.81;
     const L = 1.35;
-    const MASS = 1;
     const MAX_TORQUE = 40;
 
     const maxKp = 100;
@@ -761,30 +511,24 @@
 
     let mode = "game";
     let running = false;
-    let pausedForCard = false;
-    let pausedManual = false;
+    let paused = false;
     let tutorialActive = false;
     let tutorialStep = 0;
     let dead = false;
-    let lastTime = 0;
 
+    let lastTime = 0;
     let gameTime = 0;
     let score = 0;
     let combo = 0;
     let wave = 1;
-    let wave = 1;
-      lastAnnouncedWave = 1;
+    let lastAnnouncedWave = 1;
     let hp = 100;
 
     let bestTime = Number(localStorage.getItem("pidRobotBestTime") || "0");
     let bestWave = Number(localStorage.getItem("pidRobotBestWave") || "1");
-    let bestScore = Number(localStorage.getItem("pidRobotBestScore") || "0");
 
-    let shake = 0;
-    let nextGust = 1.8;
-    let nextCardTime = 12;
+    let nextGust = 3.2;
     let nextBossTime = 30;
-
     let windField = 0;
     let windTarget = 0;
     let chaosTimer = 0;
@@ -795,11 +539,34 @@
     let bossType = "NONE";
     let bossLevel = 1;
 
+    let shake = 0;
     let floatingTexts = [];
     let particles = [];
     let gusts = [];
     let rings = [];
-    let buffs = [];
+
+    const tutorialSteps = [
+      {
+        title: "WAVE 0: 튜토리얼",
+        text: "로봇이 넘어지지 않도록 0도 근처를 유지하는 게임이야.<br><br>이제부터 Q와 W만 직접 조작하면 돼."
+      },
+      {
+        title: "Q = Kp 힘",
+        text: "<b>Q</b>를 누르면 로봇을 빠르게 세우는 힘이 올라가.<br><br>많이 기울었을 때 짧게 눌러서 중심으로 돌려보내는 느낌이야."
+      },
+      {
+        title: "W = Kd 브레이크",
+        text: "<b>W</b>를 누르면 흔들림을 잡는 브레이크가 올라가.<br><br>로봇이 빠르게 출렁거릴 때 W를 누르면 안정화에 도움이 돼."
+      },
+      {
+        title: "Ki = 자동 기억",
+        text: "E키는 제거했어. 대신 <b>Ki가 자동으로 작은 값 유지</b>돼.<br><br>한쪽으로 계속 밀리는 작은 오차는 게임이 자동으로 조금 보정해줘."
+      },
+      {
+        title: "실전 시작",
+        text: "초반은 쉽게 시작하지만 웨이브가 오를수록 바람이 강해지고 빨라져.<br><br>최고 기록과 최고 웨이브는 자동 저장된다."
+      }
+    ];
 
     function degToRad(d) { return d * Math.PI / 180; }
     function radToDeg(r) { return r * 180 / Math.PI; }
@@ -810,7 +577,7 @@
         this.name = name;
         this.color = color;
         this.type = type;
-        this.reset(24);
+        this.reset(14);
       }
 
       reset(angle) {
@@ -819,17 +586,15 @@
         this.integral = 0;
         this.prevError = 0;
         this.history = [];
-        this.maxAngle = Math.abs(this.theta);
-        this.stableTimer = 0;
       }
 
       impulse(power, direction) {
         const dir = direction || (Math.random() > 0.5 ? 1 : -1);
         this.omega += dir * power;
-        makeBurst(dir > 0 ? "#38bdf8" : "#f472b6");
+        makeRing(dir > 0 ? "#38bdf8" : "#f472b6");
       }
 
-      update(dt, gains, wind, dampingBoost) {
+      update(dt, gains, wind) {
         const error = -this.theta;
 
         this.integral += error * dt;
@@ -838,41 +603,25 @@
         const derivative = (error - this.prevError) / dt;
         this.prevError = error;
 
-        let useKp = gains.kp;
-        let useKd = gains.kd;
-        let useKi = gains.ki;
+        let kp = gains.kp;
+        let kd = gains.kd;
+        let ki = gains.ki;
 
-        if (this.type === "NONE") {
-          useKp = 0; useKd = 0; useKi = 0;
-        }
-        if (this.type === "P") {
-          useKd = 0; useKi = 0;
-        }
-        if (this.type === "PD") {
-          useKi = 0;
-        }
+        if (this.type === "NONE") { kp = 0; kd = 0; ki = 0; }
+        if (this.type === "P") { kd = 0; ki = 0; }
+        if (this.type === "PD") { ki = 0; }
 
-        let torque = useKp * error + useKi * this.integral + useKd * derivative;
+        let torque = kp * error + kd * derivative + ki * this.integral;
         torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
-
-        const damping = 0.085 + dampingBoost;
 
         const alpha =
           -(G / L) * Math.sin(this.theta)
-          - damping * this.omega
-          + torque / (MASS * L * L)
+          - 0.09 * this.omega
+          + torque / (L * L)
           + wind;
 
         this.omega += alpha * dt;
         this.theta += this.omega * dt;
-
-        this.maxAngle = Math.max(this.maxAngle, Math.abs(this.theta));
-
-        if (Math.abs(radToDeg(this.theta)) < 3 && Math.abs(this.omega) < 0.09) {
-          this.stableTimer += dt;
-        } else {
-          this.stableTimer = 0;
-        }
 
         this.history.push(radToDeg(this.theta));
         if (this.history.length > 240) this.history.shift();
@@ -880,7 +629,6 @@
     }
 
     const player = new Robot("PID 로봇", "#60a5fa", "PID");
-
     const labRobots = [
       new Robot("무제어", "#94a3b8", "NONE"),
       new Robot("P", "#fb923c", "P"),
@@ -888,166 +636,35 @@
       new Robot("PID", "#f472b6", "PID")
     ];
 
-    const itemPool = [
-      {
-        icon: "🛡️",
-        name: "자이로 실드",
-        desc: "12초 동안 큰 각도에서 받는 피해를 줄인다.",
-        apply: function () { addBuff("shield", "자이로 실드", 12); }
-      },
-      {
-        icon: "🧊",
-        name: "브레이크 냉각",
-        desc: "10초 동안 W 브레이크 효과가 증가한다.",
-        apply: function () { addBuff("dBoost", "브레이크 냉각", 10); }
-      },
-      {
-        icon: "⚡",
-        name: "모터 과충전",
-        desc: "8초 동안 Q 힘 효과가 증가하지만 흔들리면 위험하다.",
-        apply: function () { addBuff("pBoost", "모터 과충전", 8); }
-      },
-      {
-        icon: "🧠",
-        name: "오차 기억 장치",
-        desc: "12초 동안 E 기억 보정 효과가 증가한다.",
-        apply: function () { addBuff("iBoost", "오차 기억 장치", 12); }
-      },
-      {
-        icon: "💚",
-        name: "긴급 수리",
-        desc: "HP를 25 회복한다.",
-        apply: function () {
-          hp = clamp(hp + 25, 0, 100);
-          addText("HP +25", "#86efac");
-        }
-      },
-      {
-        icon: "🌪️",
-        name: "바람 분석기",
-        desc: "15초 동안 바람의 세기가 약해진다.",
-        apply: function () { addBuff("windCut", "바람 분석기", 15); }
-      },
-      {
-        icon: "⏱️",
-        name: "보스 지연 장치",
-        desc: "다음 보스 등장을 8초 늦춘다.",
-        apply: function () {
-          nextBossTime += 8;
-          addText("보스 지연 +8초", "#fef3c7");
-        }
-      },
-      {
-        icon: "🎯",
-        name: "중심 복귀",
-        desc: "현재 흔들림을 즉시 줄인다.",
-        apply: function () {
-          player.theta *= 0.5;
-          player.omega *= 0.55;
-          addText("중심 복귀!", "#93c5fd");
-          makeBurst("#93c5fd");
-        }
-      }
-    ];
-
-
-    const tutorialSteps = [
-      {
-        title: "WAVE 0: 튜토리얼 시작",
-        text: "이 게임은 PID 값을 미리 고정해두는 실험이 아니라, 로봇 움직임을 보면서 직접 조작하는 생존 게임이야.<br><br>목표는 로봇 각도를 0도 근처로 유지하며 오래 버티는 것!"
-      },
-      {
-        title: "Q = Kp 힘",
-        text: "<b>Q</b>를 누르고 있으면 Kp 힘 게이지가 올라가.<br>로봇이 크게 기울었을 때 빠르게 다시 세우는 역할이야.<br><br>너무 오래 누르면 반대쪽으로 튕길 수 있으니 짧게 눌렀다 떼는 느낌으로 써봐."
-      },
-      {
-        title: "W = Kd 브레이크",
-        text: "<b>W</b>를 누르고 있으면 Kd 브레이크 게이지가 올라가.<br>로봇이 빠르게 흔들릴 때 속도를 줄여주는 역할이야.<br><br>출렁거릴 때는 W를 눌러 흔들림을 잡아줘."
-      },
-      {
-        title: "Ki = 자동 기억",
-        text: "기존 E키는 잘 쓰이지 않아서 이번 버전에서는 <b>Ki가 자동으로 작게 유지</b>되도록 바꿨어.<br><br>즉, 사용자는 Q와 W 조작에 집중하고, Ki는 계속 남는 작은 오차를 자동으로 보정해."
-      },
-      {
-        title: "실전 시작!",
-        text: "이제 WAVE 1부터 시작한다.<br>초반은 이전보다 쉽게 만들었지만, 웨이브가 오를수록 바람이 강해지고 간격도 짧아져.<br><br>최고 생존 시간과 최고 웨이브는 자동 저장된다."
-      }
-    ];
-
-    function getBuff(type) {
-      return buffs.find(b => b.type === type);
-    }
-
-    function addBuff(type, name, time) {
-      const old = getBuff(type);
-      if (old) old.time = Math.max(old.time, time);
-      else buffs.push({ type: type, name: name, time: time });
-
-      addText(name + "!", "#fef3c7");
-      updateBuffList();
-    }
-
-    function updateBuffs(dt) {
-      buffs.forEach(b => { b.time -= dt; });
-      buffs = buffs.filter(b => b.time > 0);
-      updateBuffList();
-    }
-
-    function updateBuffList() {
-      if (buffs.length === 0) {
-        buffList.innerHTML = "<span class='buff'>효과 없음</span>";
-        return;
-      }
-
-      buffList.innerHTML = buffs.map(b => {
-        return "<span class='buff'>" + b.name + " " + b.time.toFixed(0) + "초</span>";
-      }).join("");
-    }
-
     function getGains() {
-      let kp = kpGauge;
-      let kd = kdGauge;
-      let ki = kiGauge;
-
-      if (getBuff("pBoost")) kp *= 1.25;
-      if (getBuff("dBoost")) kd *= 1.35;
-      if (getBuff("iBoost")) ki *= 1.3;
-
-      return { kp: kp, kd: kd, ki: ki };
+      return {
+        kp: kpGauge,
+        kd: kdGauge,
+        ki: kiGauge
+      };
     }
 
     function updateSkillGauges(dt) {
-      if (pausedForCard || tutorialActive || pausedManual) {
+      if (tutorialActive || paused) {
         updateGaugeUI();
         return;
       }
 
-      const kpRise = 115;
-      const kdRise = 78;
+      if (keys.q) kpGauge += 115 * dt;
+      else kpGauge -= 90 * dt;
 
-      const kpFall = 90;
-      const kdFall = 68;
+      if (keys.w) kdGauge += 78 * dt;
+      else kdGauge -= 68 * dt;
 
-      if (keys.q) kpGauge += kpRise * dt;
-      else kpGauge -= kpFall * dt;
-
-      if (keys.w) kdGauge += kdRise * dt;
-      else kdGauge -= kdFall * dt;
-
-      /*
-        Ki는 이제 직접 조작하지 않는다.
-        게임 중에는 작은 자동 기억 값으로 유지되어,
-        한쪽으로 계속 밀리는 오차를 약하게 보정한다.
-      */
-      let autoKiTarget = 0;
+      let targetKi = 0;
       if (running && mode === "game" && !dead) {
-        autoKiTarget = 3.2 + Math.min(2.2, wave * 0.22);
-        if (bossActive) autoKiTarget += 0.8;
-      } else if (mode === "lab" && running) {
-        autoKiTarget = 4.0;
+        targetKi = 3.1 + Math.min(2.4, wave * 0.22);
+        if (bossActive) targetKi += 0.7;
+      } else if (running && mode === "lab") {
+        targetKi = 4;
       }
 
-      kiGauge += (autoKiTarget - kiGauge) * dt * 2.4;
+      kiGauge += (targetKi - kiGauge) * dt * 2.4;
 
       kpGauge = clamp(kpGauge, 0, maxKp);
       kdGauge = clamp(kdGauge, 0, maxKd);
@@ -1083,27 +700,28 @@
     });
 
     pauseBtn.addEventListener("click", function () {
-      if (tutorialActive || dead) return;
-      pausedManual = !pausedManual;
-      pauseBtn.textContent = pausedManual ? "계속하기" : "일시 정지";
-      topMessage.textContent = pausedManual ? "PAUSED" : ("WAVE " + wave + " · " + gameTime.toFixed(1) + "초");
-      resultText.innerHTML = pausedManual ? "일시 정지 중. 계속하기를 누르면 이어서 진행된다." : "다시 진행 중!";
+      if (!running || tutorialActive || dead) return;
+      paused = !paused;
+      pauseBtn.textContent = paused ? "계속하기" : "일시 정지";
+      topMessage.textContent = paused ? "PAUSED" : "WAVE " + wave + " · " + gameTime.toFixed(1) + "초";
     });
 
     tutorialNextBtn.addEventListener("click", function () {
-      advanceTutorial();
+      if (tutorialStep >= tutorialSteps.length - 1) {
+        finishTutorialAndStart();
+        return;
+      }
+      tutorialStep++;
+      showTutorialStep();
+      makeRing("#60a5fa");
     });
 
-    tutorialSkipBtn.addEventListener("click", function () {
-      finishTutorialAndStart();
-    });
-
+    tutorialSkipBtn.addEventListener("click", finishTutorialAndStart);
 
     gameModeBtn.addEventListener("click", function () {
       mode = "game";
       gameModeBtn.classList.add("active");
       labModeBtn.classList.remove("active");
-      missionText.innerHTML = "웨이브0 튜토리얼 후 WAVE 1부터 시작한다. Q/W로 조작하고 Ki는 자동 기억으로 작동한다.";
       resetGame();
     });
 
@@ -1111,21 +729,17 @@
       mode = "lab";
       labModeBtn.classList.add("active");
       gameModeBtn.classList.remove("active");
-      missionText.innerHTML = "같은 입력 게이지로 무제어, P, PD, PID를 비교해보자.";
       resetGame();
       running = true;
-      resultText.innerHTML = "비교 실험 중. Q/W를 눌렀을 때 PID 로봇이 어떻게 안정되는지 보자.";
+      paused = false;
+      topMessage.textContent = "비교 실험";
     });
-
 
     function startNewGame() {
       resetGame();
 
-      if (mode !== "game") {
+      if (mode === "lab") {
         running = true;
-        pausedManual = false;
-        pauseBtn.textContent = "일시 정지";
-        resultText.innerHTML = "비교 실험 중. Q/W 게이지와 자동 Ki로 제어 방식을 비교해보자.";
         return;
       }
 
@@ -1137,17 +751,15 @@
     }
 
     function startTutorial() {
-      tutorialActive = true;
-      pausedManual = true;
       running = false;
+      paused = false;
+      tutorialActive = true;
+      tutorialStep = 0;
       wave = 0;
       gameTime = 0;
-      tutorialStep = 0;
-      player.reset(14);
-      showTutorialStep();
+      player.reset(10);
       topMessage.textContent = "WAVE 0 · TUTORIAL";
-      resultText.innerHTML = "튜토리얼 진행 중. 설명을 보고 조작 개념을 익혀보자.";
-      updateHUD();
+      showTutorialStep();
     }
 
     function showTutorialStep() {
@@ -1158,32 +770,32 @@
       tutorialOverlay.classList.add("show");
     }
 
-    function advanceTutorial() {
-      if (tutorialStep >= tutorialSteps.length - 1) {
-        finishTutorialAndStart();
-        return;
-      }
-
-      tutorialStep += 1;
-      showTutorialStep();
-      makeRing("#60a5fa");
-    }
-
     function finishTutorialAndStart() {
       tutorialActive = false;
       tutorialOverlay.classList.remove("show");
-      pausedManual = false;
       running = true;
+      paused = false;
+      dead = false;
+
       gameTime = 0;
       wave = 1;
-      nextGust = 3.8;
-      nextCardTime = 15;
-      nextBossTime = 30;
+      lastAnnouncedWave = 1;
       hp = 100;
-      dead = false;
-      player.reset(14);
+      score = 0;
+      combo = 0;
+      nextGust = 3.2;
+      nextBossTime = 30;
+      windField = 0;
+      windTarget = 0;
+      chaosTimer = 0;
+      bossActive = false;
+
+      player.reset(12);
+      kpGauge = 0;
+      kdGauge = 0;
+      kiGauge = 0;
+
       topMessage.textContent = "WAVE 1 · 0.0초";
-      resultText.innerHTML = "실전 시작! Q는 힘, W는 브레이크, Ki는 자동 기억으로 작동한다.";
       pauseBtn.textContent = "일시 정지";
       makeRing("#22c55e");
       updateHUD();
@@ -1191,13 +803,10 @@
 
     function resetGame() {
       running = false;
-      pausedForCard = false;
-      pausedManual = false;
+      paused = false;
       tutorialActive = false;
-      dead = false;
-      cardSelect.classList.remove("show");
       tutorialOverlay.classList.remove("show");
-      pauseBtn.textContent = "일시 정지";
+      dead = false;
 
       gameTime = 0;
       score = 0;
@@ -1206,311 +815,102 @@
       lastAnnouncedWave = 1;
       hp = 100;
 
-      shake = 0;
-      nextGust = 3.8;
-      nextCardTime = 15;
+      nextGust = 3.2;
       nextBossTime = 30;
-
       windField = 0;
       windTarget = 0;
       chaosTimer = 0;
-
       bossActive = false;
       bossTimer = 0;
-      bossDuration = 8;
       bossType = "NONE";
-      bossLevel = 1;
+
+      kpGauge = 0;
+      kdGauge = 0;
+      kiGauge = 0;
+      keys.q = false;
+      keys.w = false;
 
       floatingTexts = [];
       particles = [];
       gusts = [];
       rings = [];
-      buffs = [];
-
-      kpGauge = 0;
-      kdGauge = 0;
-      kiGauge = 0;
-
-      keys.q = false;
-      keys.w = false;
 
       player.reset(14);
       labRobots.forEach(r => r.reset(14));
 
-      updateGaugeUI();
-      updateBuffList();
-
+      pauseBtn.textContent = "일시 정지";
       topMessage.textContent = "READY";
-      resultText.innerHTML = "게임 시작을 누르면 웨이브 생존전이 시작된다.";
+      updateGaugeUI();
       updateHUD();
-    }
-
-    function openCardSelect() {
-      if (!running && mode === "game") return;
-
-      pausedForCard = true;
-      cards.innerHTML = "";
-
-      const options = pickRandomItems(3);
-
-      options.forEach(item => {
-        const el = document.createElement("div");
-        el.className = "item-card";
-        el.innerHTML =
-          "<div class='icon'>" + item.icon + "</div>" +
-          "<h3>" + item.name + "</h3>" +
-          "<p>" + item.desc + "</p>";
-
-        el.addEventListener("click", function () {
-          item.apply();
-          pausedForCard = false;
-          cardSelect.classList.remove("show");
-          resultText.innerHTML = "아이템 카드 선택 완료. 다시 버텨보자!";
-        });
-
-        cards.appendChild(el);
-      });
-
-      cardSelect.classList.add("show");
-    }
-
-    function pickRandomItems(count) {
-      const pool = itemPool.slice();
-      const result = [];
-
-      while (result.length < count && pool.length > 0) {
-        const index = Math.floor(Math.random() * pool.length);
-        result.push(pool.splice(index, 1)[0]);
-      }
-
-      return result;
-    }
-
-    function spawnGust(manual, multiplier) {
-      const difficulty = 0.78 + wave * 0.14 + gameTime / 90;
-      let power = (1.0 + wave * 0.30 + Math.random() * (0.65 + wave * 0.05)) * difficulty;
-
-      if (getBuff("windCut")) power *= 0.65;
-      if (multiplier) power *= multiplier;
-
-      const dir = Math.random() > 0.5 ? 1 : -1;
-      player.impulse(power, dir);
-
-      gusts.push({
-        x: dir > 0 ? -80 : canvas.width + 80,
-        y: canvas.height * (0.24 + Math.random() * 0.42),
-        vx: dir > 0 ? 300 : -300,
-        life: 1.0,
-        big: manual
-      });
-
-      shake = Math.max(shake, 8 + wave * 0.5);
-      addText(manual ? "돌풍!" : "변칙 바람!", "#93c5fd");
-      makeRing(manual ? "#facc15" : "#93c5fd");
-    }
-
-    function startBoss() {
-      bossActive = true;
-      bossTimer = 0;
-      bossLevel = Math.max(1, Math.floor(gameTime / 30));
-      bossDuration = 7.5 + bossLevel * 1.45;
-
-      const types = ["REVERSAL", "PULSE", "LOCK", "SPIRAL"];
-      bossType = types[(bossLevel - 1) % types.length];
-
-      shake = 18;
-
-      if (bossType === "REVERSAL") {
-        topMessage.textContent = "BOSS: 역풍 반전";
-        resultText.innerHTML = "<span class='boss-text'>보스 바람!</span><br>바람 방향이 계속 뒤집힌다. W 브레이크로 흔들림을 잡아라.";
-      }
-
-      if (bossType === "PULSE") {
-        topMessage.textContent = "BOSS: 충격파";
-        resultText.innerHTML = "<span class='boss-text'>보스 바람!</span><br>짧고 강한 충격이 연속으로 온다. Q와 W를 번갈아 눌러라.";
-      }
-
-      if (bossType === "LOCK") {
-        topMessage.textContent = "BOSS: 스킬 교란";
-        resultText.innerHTML = "<span class='boss-text'>보스 바람!</span><br>Q/W 게이지가 강제로 떨어진다. 다시 눌러서 회복해라.";
-      }
-
-      if (bossType === "SPIRAL") {
-        topMessage.textContent = "BOSS: 회오리";
-        resultText.innerHTML = "<span class='boss-text'>보스 바람!</span><br>한 방향으로 계속 밀다가 갑자기 반전한다. E를 짧게 활용해라.";
-      }
-
-      addText("BOSS WIND!", "#facc15");
-      makeBurst("#facc15");
-      makeRing("#facc15");
-    }
-
-    function updateBoss(dt) {
-      if (!bossActive) return 0;
-
-      bossTimer += dt;
-      let bossWind = 0;
-      const levelPower = 0.62 + bossLevel * 0.24;
-
-      if (bossType === "REVERSAL") {
-        bossWind = Math.sin(bossTimer * 5.2) * levelPower;
-      }
-
-      if (bossType === "PULSE") {
-        bossWind = Math.sin(bossTimer * 13) > 0.55 ? levelPower * 2.2 : -levelPower * 0.4;
-
-        if (Math.random() < dt * 2.2) {
-          player.impulse(1.1 + bossLevel * 0.32, Math.random() > 0.5 ? 1 : -1);
-        }
-      }
-
-      if (bossType === "LOCK") {
-        bossWind = Math.sin(bossTimer * 4) * levelPower * 0.8;
-
-        if (Math.random() < dt * 1.8) {
-          kpGauge *= 0.65;
-          kdGauge *= 0.72;
-          kiGauge *= 0.55;
-          addText("게이지 교란!", "#fca5a5");
-        }
-      }
-
-      if (bossType === "SPIRAL") {
-        const dir = bossTimer < bossDuration / 2 ? 1 : -1;
-        bossWind = dir * (levelPower * 1.15 + bossTimer * 0.03);
-      }
-
-      if (bossTimer >= bossDuration) {
-        bossActive = false;
-        nextBossTime = gameTime + 30;
-        topMessage.textContent = "BOSS CLEAR!";
-        addText("보스 클리어!", "#86efac");
-        score += 800 + bossLevel * 250;
-        hp = clamp(hp + 12, 0, 100);
-        addText("보스 보상 HP +12", "#86efac");
-      }
-
-      return bossWind;
-    }
-
-    function addText(text, color) {
-      floatingTexts.push({
-        text: text,
-        color: color,
-        x: canvas.width / 2,
-        y: canvas.height * 0.25,
-        vy: -38,
-        life: 1.0
-      });
-    }
-
-    function makeBurst(color) {
-      for (let i = 0; i < 28; i++) {
-        particles.push({
-          x: canvas.width / 2,
-          y: canvas.height * 0.55,
-          vx: (Math.random() - 0.5) * 300,
-          vy: (Math.random() - 0.5) * 240,
-          r: 2 + Math.random() * 3,
-          color: color,
-          life: 0.8
-        });
-      }
-    }
-
-    function makeRing(color) {
-      rings.push({
-        x: canvas.width / 2,
-        y: canvas.height * 0.52,
-        radius: 10,
-        speed: 260,
-        color: color,
-        life: 0.75
-      });
     }
 
     function updateGame(dt) {
       updateSkillGauges(dt);
 
-      if (!running || pausedForCard || pausedManual || tutorialActive) return;
+      if (!running || paused || tutorialActive) return;
 
       gameTime += dt;
-      wave = Math.max(1, Math.floor(gameTime / 22) + 1);
-
-      if (wave > lastAnnouncedWave) {
-        lastAnnouncedWave = wave;
-        addText("WAVE " + wave + "!", "#fef3c7");
-        makeRing("#fef3c7");
-        score += 150 + wave * 25;
-      }
-
-      updateBestRecords(false);
-      updateBuffs(dt);
 
       if (mode === "game") {
+        wave = Math.max(1, Math.floor(gameTime / 22) + 1);
+
+        if (wave > lastAnnouncedWave) {
+          lastAnnouncedWave = wave;
+          score += 160 + wave * 30;
+          addText("WAVE " + wave + "!", "#fef3c7");
+          makeRing("#fef3c7");
+        }
+
+        updateBestRecords(false);
+
         nextGust -= dt;
         chaosTimer -= dt;
 
         if (chaosTimer <= 0) {
-          const difficulty = 0.62 + wave * 0.12 + gameTime / 120;
-          windTarget = (Math.random() - 0.5) * 0.50 * difficulty;
-          chaosTimer = Math.max(0.22, 1.15 - wave * 0.055 + Math.random() * 0.75);
+          const difficulty = 0.58 + wave * 0.12 + gameTime / 125;
+          windTarget = (Math.random() - 0.5) * 0.48 * difficulty;
+          chaosTimer = Math.max(0.25, 1.25 - wave * 0.055 + Math.random() * 0.8);
         }
 
-        windField += (windTarget - windField) * dt * 2.1;
+        windField += (windTarget - windField) * dt * 2.0;
 
         let totalWind =
           windField +
-          Math.sin(gameTime * (1.65 + wave * 0.10)) * (0.08 + wave * 0.035) +
-          Math.sin(gameTime * (4.2 + wave * 0.08)) * (0.045 + wave * 0.012) +
-          Math.sin(gameTime * 9.3) * (wave >= 5 ? 0.045 : 0);
+          Math.sin(gameTime * (1.55 + wave * 0.10)) * (0.07 + wave * 0.034) +
+          Math.sin(gameTime * (4.0 + wave * 0.08)) * (0.04 + wave * 0.012);
 
         if (gameTime >= nextBossTime && !bossActive) startBoss();
-
         totalWind += updateBoss(dt);
 
         if (nextGust <= 0 && !bossActive) {
-          spawnGust(false, 1);
-          nextGust = Math.max(0.62, 3.05 - wave * 0.15 + Math.random() * Math.max(0.40, 1.15 - wave * 0.03));
+          spawnGust();
+          nextGust = Math.max(0.65, 3.2 - wave * 0.15 + Math.random() * Math.max(0.45, 1.15 - wave * 0.03));
         }
 
-
-        const dampingBoost = getBuff("dBoost") ? 0.04 : 0;
-        player.update(dt, getGains(), totalWind, dampingBoost);
+        player.update(dt, getGains(), totalWind);
 
         const angle = Math.abs(radToDeg(player.theta));
         const gains = getGains();
 
-        let penalty = 1;
-        if (gains.kp > 75 && angle > 8) penalty += 0.45;
-        if (gains.ki > 12 && angle > 10) penalty += 0.45;
-        if (gains.kd < 5 && angle > 12) penalty += 0.55;
-        penalty += Math.max(0, wave - 1) * 0.045;
+        let penalty = 1 + Math.max(0, wave - 1) * 0.045;
+        if (gains.kp > 78 && angle > 8) penalty += 0.35;
+        if (gains.kd < 5 && angle > 12) penalty += 0.45;
 
         if (angle < 3) {
-          combo += dt * 11;
-          score += Math.round(9 + combo * 0.045 + wave);
-
-          if (Math.floor(combo) % 60 === 0 && combo > 0) {
-            makeBurst("#22c55e");
-          }
+          combo += dt * 10;
+          score += Math.round(8 + combo * 0.045 + wave);
         } else if (angle < 10) {
-          score += 3 + wave;
+          score += 2 + wave;
         } else if (angle > 24) {
-          hp -= dt * (3.0 + wave * 1.15) * penalty;
+          hp -= dt * (2.8 + wave * 1.12) * penalty;
           combo = 0;
-          shake = Math.max(shake, 6);
+          shake = Math.max(shake, 5);
         }
 
         if (angle > 44) {
-          hp -= dt * (13 + wave * 2.25) * penalty;
+          hp -= dt * (12 + wave * 2.15) * penalty;
           combo = 0;
-          shake = Math.max(shake, 12);
-        }
-
-        if (getBuff("shield")) {
-          hp += dt * 2.2;
-          hp = clamp(hp, 0, 100);
+          shake = Math.max(shake, 10);
         }
 
         hp = clamp(hp, 0, 100);
@@ -1520,18 +920,102 @@
           dead = true;
           updateBestRecords(true);
           topMessage.textContent = "FAILED";
-          resultText.innerHTML =
-            "<span class='danger-text'>실패!</span><br>" +
-            "생존 시간: " + gameTime.toFixed(1) + "초 / 도달 웨이브: " + wave + "<br>" +
-            "최고 기록: " + bestTime.toFixed(1) + "초 / 최고 웨이브: " + bestWave + "<br>" +
-            "Q와 W를 누르는 타이밍으로 다시 도전해보자.";
           addText("ROBOT DOWN", "#fca5a5");
           makeRing("#ef4444");
         }
       } else {
         const gains = getGains();
-        const wind = Math.sin(gameTime * 1.1) * 0.22;
-        labRobots.forEach(r => r.update(dt, gains, wind, 0));
+        const wind = Math.sin(gameTime * 1.0) * 0.20;
+        labRobots.forEach(r => r.update(dt, gains, wind));
+      }
+    }
+
+    function spawnGust() {
+      const difficulty = 0.65 + wave * 0.12 + gameTime / 120;
+      const power = (0.95 + wave * 0.28 + Math.random() * (0.58 + wave * 0.045)) * difficulty;
+      const dir = Math.random() > 0.5 ? 1 : -1;
+
+      player.impulse(power, dir);
+
+      gusts.push({
+        x: dir > 0 ? -80 : canvas.width + 80,
+        y: canvas.height * (0.25 + Math.random() * 0.40),
+        vx: dir > 0 ? 290 : -290,
+        life: 1.0
+      });
+
+      shake = Math.max(shake, 6 + wave * 0.35);
+      addText("변칙 바람!", "#93c5fd");
+    }
+
+    function startBoss() {
+      bossActive = true;
+      bossTimer = 0;
+      bossLevel = Math.max(1, Math.floor(gameTime / 30));
+      bossDuration = 7.5 + bossLevel * 1.25;
+
+      const types = ["REVERSAL", "PULSE", "SPIRAL"];
+      bossType = types[(bossLevel - 1) % types.length];
+
+      topMessage.textContent = "BOSS: " + bossType;
+      addText("BOSS WIND!", "#facc15");
+      makeRing("#facc15");
+      shake = 15;
+    }
+
+    function updateBoss(dt) {
+      if (!bossActive) return 0;
+
+      bossTimer += dt;
+      const levelPower = 0.55 + bossLevel * 0.21;
+      let bossWind = 0;
+
+      if (bossType === "REVERSAL") {
+        bossWind = Math.sin(bossTimer * 5.0) * levelPower;
+      }
+
+      if (bossType === "PULSE") {
+        bossWind = Math.sin(bossTimer * 12) > 0.55 ? levelPower * 2.0 : -levelPower * 0.35;
+
+        if (Math.random() < dt * 1.8) {
+          player.impulse(0.95 + bossLevel * 0.28, Math.random() > 0.5 ? 1 : -1);
+        }
+      }
+
+      if (bossType === "SPIRAL") {
+        const dir = bossTimer < bossDuration / 2 ? 1 : -1;
+        bossWind = dir * (levelPower * 1.05 + bossTimer * 0.025);
+      }
+
+      if (bossTimer >= bossDuration) {
+        bossActive = false;
+        nextBossTime = gameTime + 30;
+        hp = clamp(hp + 10, 0, 100);
+        score += 750 + bossLevel * 220;
+        topMessage.textContent = "BOSS CLEAR!";
+        addText("보스 클리어!", "#86efac");
+        makeRing("#86efac");
+      }
+
+      return bossWind;
+    }
+
+    function updateBestRecords(forceSave) {
+      let changed = false;
+
+      if (gameTime > bestTime) {
+        bestTime = gameTime;
+        changed = true;
+      }
+
+      if (wave > bestWave) {
+        bestWave = wave;
+        changed = true;
+      }
+
+      if (changed || forceSave) {
+        localStorage.setItem("pidRobotBestTime", String(bestTime));
+        localStorage.setItem("pidRobotBestWave", String(bestWave));
       }
     }
 
@@ -1566,40 +1050,15 @@
       if (shake < 0.2) shake = 0;
     }
 
-    function updateBestRecords(forceSave) {
-      let changed = false;
-
-      if (gameTime > bestTime) {
-        bestTime = gameTime;
-        changed = true;
-      }
-
-      if (wave > bestWave) {
-        bestWave = wave;
-        changed = true;
-      }
-
-      if (score > bestScore) {
-        bestScore = score;
-        changed = true;
-      }
-
-      if (changed || forceSave) {
-        localStorage.setItem("pidRobotBestTime", String(bestTime));
-        localStorage.setItem("pidRobotBestWave", String(bestWave));
-        localStorage.setItem("pidRobotBestScore", String(bestScore));
-      }
-    }
-
     function updateHUD() {
       scoreText.textContent = Math.floor(score);
       comboText.textContent = Math.floor(combo);
-      waveText.textContent = wave;
+      waveText.textContent = tutorialActive ? 0 : wave;
       timeText.textContent = gameTime.toFixed(1) + "초";
       bestTimeText.textContent = bestTime.toFixed(1) + "초";
       bestWaveText.textContent = bestWave;
-      hpFill.style.width = hp + "%";
 
+      hpFill.style.width = hp + "%";
       if (hp > 55) {
         hpFill.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
       } else if (hp > 25) {
@@ -1608,24 +1067,23 @@
         hpFill.style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
       }
 
-      let bossRatio;
       if (bossActive) {
-        bossRatio = 100 * (1 - bossTimer / bossDuration);
+        bossFill.style.width = (100 * (1 - bossTimer / bossDuration)) + "%";
         bossFill.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
         bossInfo.textContent = "보스 진행 중: " + bossType;
       } else {
-        bossRatio = 100 * clamp((30 - (nextBossTime - gameTime)) / 30, 0, 1);
+        const ratio = 100 * clamp((30 - (nextBossTime - gameTime)) / 30, 0, 1);
+        bossFill.style.width = ratio + "%";
         bossFill.style.background = "linear-gradient(90deg, #2563eb, #facc15)";
         bossInfo.textContent = "다음 보스까지 " + Math.max(0, nextBossTime - gameTime).toFixed(1) + "초";
       }
-      bossFill.style.width = bossRatio + "%";
 
       const angle = mode === "game" ? radToDeg(player.theta) : radToDeg(labRobots[3].theta);
       angleMessage.textContent = "각도 " + angle.toFixed(1) + "°";
 
       if (tutorialActive) {
         topMessage.textContent = "WAVE 0 · TUTORIAL";
-      } else if (running && mode === "game" && !bossActive) {
+      } else if (running && !paused && mode === "game" && !bossActive) {
         topMessage.textContent = "WAVE " + wave + " · " + gameTime.toFixed(1) + "초";
       }
     }
@@ -1708,20 +1166,16 @@
       roundRect(-42, -42, 84, 84, 16);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
 
       if (robot === player && dead) {
-        ctx.strokeStyle = "rgba(255,255,255,0.95)";
+        ctx.strokeStyle = "rgba(255,255,255,0.96)";
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(-22, -18);
-        ctx.lineTo(-10, -6);
-        ctx.moveTo(-10, -18);
-        ctx.lineTo(-22, -6);
-        ctx.moveTo(10, -18);
-        ctx.lineTo(22, -6);
-        ctx.moveTo(22, -18);
-        ctx.lineTo(10, -6);
+        ctx.moveTo(-22, -18); ctx.lineTo(-10, -6);
+        ctx.moveTo(-10, -18); ctx.lineTo(-22, -6);
+        ctx.moveTo(10, -18); ctx.lineTo(22, -6);
+        ctx.moveTo(22, -18); ctx.lineTo(10, -6);
         ctx.stroke();
       } else {
         ctx.beginPath();
@@ -1730,7 +1184,7 @@
         ctx.fill();
       }
 
-      ctx.strokeStyle = "rgba(255,255,255,0.88)";
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
       ctx.lineWidth = 4;
       ctx.beginPath();
 
@@ -1754,7 +1208,7 @@
       ctx.fillText(radToDeg(robot.theta).toFixed(1) + "°", x, groundY + 55);
     }
 
-    function drawGameScene() {
+    function drawScene() {
       const w = canvas.width;
       const h = canvas.height;
       const groundY = h * 0.76;
@@ -1773,19 +1227,23 @@
         drawRobot(player, w / 2, groundY, Math.min(245, h * 0.43), "PID 로봇");
         drawMiniGraph(player.history, player.color);
 
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
         ctx.textAlign = "center";
         ctx.font = "bold 28px Arial";
-        ctx.fillText((tutorialActive ? "WAVE 0 튜토리얼" : "WAVE " + wave + "  |  " + gameTime.toFixed(1) + "초 생존"), w / 2, 78);
+
+        if (tutorialActive) {
+          ctx.fillText("WAVE 0 튜토리얼", w / 2, 78);
+        } else {
+          ctx.fillText("WAVE " + wave + "  |  " + gameTime.toFixed(1) + "초 생존", w / 2, 78);
+        }
 
         ctx.font = "14px Arial";
-        ctx.fillStyle = "#cbd5e1";
+        ctx.fillStyle = bossActive ? "#facc15" : "#cbd5e1";
 
         if (bossActive) {
-          ctx.fillStyle = "#facc15";
-          ctx.fillText("보스 웨이브 진행 중: " + bossType, w / 2, 104);
+          ctx.fillText("보스 바람 진행 중: " + bossType, w / 2, 104);
         } else {
-          ctx.fillText("최고 기록 " + bestTime.toFixed(1) + "초 / 최고 웨이브 " + bestWave, w / 2, 104);
+          ctx.fillText("Q는 힘, W는 브레이크, Ki는 자동 기억", w / 2, 104);
         }
       } else {
         drawLabScene();
@@ -1812,13 +1270,32 @@
 
       ctx.font = "14px Arial";
       ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("같은 입력 게이지에서 어떤 로봇이 안정적인지 비교", w / 2, 96);
+      ctx.fillText("같은 입력에서 어떤 로봇이 안정적인지 비교", w / 2, 96);
 
       labRobots.forEach((r, i) => {
         drawRobot(r, gap * (i + 1), groundY, Math.min(150, h * 0.31), r.name);
       });
 
       drawMultiGraph();
+    }
+
+    function drawDangerZones() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const gy = h * 0.76;
+      const radius = Math.min(260, h * 0.46);
+
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.35)";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.arc(cx, gy, radius, -Math.PI * 0.92, -Math.PI * 0.72);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, gy, radius, -Math.PI * 0.28, -Math.PI * 0.08);
+      ctx.stroke();
     }
 
     function drawBossAura() {
@@ -1843,31 +1320,6 @@
       ctx.textAlign = "center";
       ctx.font = "bold 42px Arial";
       ctx.fillText("🌪️", cx, cy);
-    }
-
-    function drawDangerZones() {
-      const w = canvas.width;
-      const h = canvas.height;
-      const cx = w / 2;
-      const gy = h * 0.76;
-      const radius = Math.min(260, h * 0.46);
-
-      ctx.strokeStyle = "rgba(239, 68, 68, 0.35)";
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.arc(cx, gy, radius, -Math.PI * 0.92, -Math.PI * 0.72);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(cx, gy, radius, -Math.PI * 0.28, -Math.PI * 0.08);
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(239, 68, 68, 0.55)";
-      ctx.font = "bold 13px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("위험 구역", cx - radius * 0.72, gy - radius * 0.65);
-      ctx.fillText("위험 구역", cx + radius * 0.72, gy - radius * 0.65);
     }
 
     function drawMiniGraph(history, color) {
@@ -1956,14 +1408,13 @@
     function drawGusts() {
       gusts.forEach(g => {
         ctx.globalAlpha = clamp(g.life, 0, 1);
-        ctx.fillStyle = g.big ? "#facc15" : "#93c5fd";
-        ctx.font = g.big ? "bold 44px Arial" : "bold 34px Arial";
+        ctx.fillStyle = "#93c5fd";
+        ctx.font = "bold 34px Arial";
         ctx.textAlign = "center";
         ctx.fillText("💨", g.x, g.y);
         ctx.globalAlpha = 1;
       });
     }
-
 
     function drawRings() {
       rings.forEach(r => {
@@ -1999,6 +1450,28 @@
       });
     }
 
+    function addText(text, color) {
+      floatingTexts.push({
+        text: text,
+        color: color,
+        x: canvas.width / 2,
+        y: canvas.height * 0.25,
+        vy: -38,
+        life: 1.0
+      });
+    }
+
+    function makeRing(color) {
+      rings.push({
+        x: canvas.width / 2,
+        y: canvas.height * 0.52,
+        radius: 10,
+        speed: 260,
+        color: color,
+        life: 0.75
+      });
+    }
+
     function roundRect(x, y, w, h, r) {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
@@ -2023,13 +1496,12 @@
       updateGame(dt);
       updateEffects(dt);
       updateHUD();
-      drawGameScene();
+      drawScene();
 
       requestAnimationFrame(loop);
     }
 
     resize();
-    updateGaugeUI();
     resetGame();
     requestAnimationFrame(loop);
   </script>
