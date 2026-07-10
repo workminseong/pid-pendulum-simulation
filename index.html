@@ -640,7 +640,7 @@
     <header>
       <div class="title">
         <h1>PID 시뮬레이션 웹사이트</h1>
-        <span>VERSION_PID_SIMULATION_WEBSITE_CARD_UP_20260710 · 생존 모드 유지 · 비교 실험 정보 카드 위치 조정</span>
+        <span>VERSION_PID_SIMULATION_WEBSITE_LAB_MINIMAL_20260710 · 비교 실험 배경 선 제거 · 상단 설명 제거</span>
       </div>
 
       <div class="top-buttons">
@@ -1630,41 +1630,10 @@
       const groundY = h * 0.76;
 
       if (mode === "lab") {
-        const bg = ctx.createLinearGradient(0, 0, 0, h);
-        bg.addColorStop(0, "#07111f");
-        bg.addColorStop(1, "#0a1424");
-        ctx.fillStyle = bg;
+        ctx.fillStyle = "#08111f";
         ctx.fillRect(0, 0, w, h);
 
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.05)";
-        ctx.lineWidth = 1;
-        for (let x = 0; x < w; x += 56) {
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, h);
-          ctx.stroke();
-        }
-
-        for (let y = 0; y < h; y += 56) {
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(w, y);
-          ctx.stroke();
-        }
-
-        ctx.strokeStyle = "rgba(203, 213, 225, 0.10)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(w / 2, 0);
-        ctx.lineTo(w / 2, h);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(0, groundY);
-        ctx.lineTo(w, groundY);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(15, 23, 42, 0.18)";
+        ctx.fillStyle = "rgba(15, 23, 42, 0.26)";
         ctx.fillRect(0, groundY, w, h - groundY);
         return;
       }
@@ -1841,29 +1810,6 @@
       const groundY = h * 0.60;
       const gap = w / 5;
       const robotSize = Math.min(112, h * 0.205);
-      const s = getLabSettings();
-
-      ctx.fillStyle = "rgba(2, 6, 23, 0.82)";
-      roundRect(38, 28, w - 76, 104, 24);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(147, 197, 253, 0.34)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.font = "bold 30px Arial";
-      ctx.fillText("같은 바람, 다른 제어 방식", w / 2, 64);
-
-      ctx.font = "bold 15px Arial";
-      ctx.fillStyle = "#dbeafe";
-      ctx.fillText("그래프가 가운데 0° 선에 가까울수록 로봇이 안정적으로 서 있는 것이다.", w / 2, 91);
-
-      ctx.font = "bold 12px Arial";
-      ctx.fillStyle = "#93c5fd";
-      ctx.fillText("초기각 " + s.initialAngle.toFixed(0) + "°   ·   바람 세기 " + s.windRaw.toFixed(0) + "/50   ·   " + labPatternLabel.textContent + "   ·   " + gameTime.toFixed(1) + "초", w / 2, 114);
-
-      drawLabWindVisual(currentLabWind, s.pattern);
 
       labRobots.forEach((r, i) => {
         drawLabRobotCard(r, gap * (i + 1), groundY, robotSize, i);
