@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PID 로봇 디펜스 : 안정판</title>
+  <title>PID 시뮬레이션 웹사이트</title>
   <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_EASY_WIND_20260710 -->
 
   <style>
@@ -197,9 +197,7 @@
       position: relative;
       min-width: 0;
       min-height: 0;
-      background:
-        radial-gradient(circle at center, rgba(37, 99, 235, 0.13), transparent 42%),
-        #020617;
+      background: #020617;
     }
 
     canvas {
@@ -641,8 +639,8 @@
   <div class="app">
     <header>
       <div class="title">
-        <h1>PID 로봇 디펜스 : 안정판</h1>
-        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_CLEAN_BG_20260710 · 생존 모드 유지 · 비교 실험 배경/가독성 정리</span>
+        <h1>PID 시뮬레이션 웹사이트</h1>
+        <span>VERSION_PID_SIMULATION_WEBSITE_CARD_UP_20260710 · 생존 모드 유지 · 비교 실험 정보 카드 위치 조정</span>
       </div>
 
       <div class="top-buttons">
@@ -1131,6 +1129,14 @@
       document.body.classList.toggle("wind-alternate", s.pattern === "alternate");
     }
 
+    function clearVisualEffects() {
+      floatingTexts = [];
+      particles = [];
+      gusts = [];
+      rings = [];
+      shake = 0;
+    }
+
     function resetLabExperiment() {
       const s = getLabSettings();
       gameTime = 0;
@@ -1141,6 +1147,7 @@
       labNoiseTarget = 0;
       labNoiseTimer = 0;
       labPulseMemory = 0;
+      clearVisualEffects();
       labRobots.forEach(r => r.reset(s.initialAngle));
       topMessage.textContent = "비교 실험 · " + s.pattern;
       updateLabControlUI();
@@ -1818,10 +1825,12 @@
         drawLabScene();
       }
 
-      drawGusts();
-      drawRings();
-      drawParticles();
-      drawFloatingTexts();
+      if (mode === "game") {
+        drawGusts();
+        drawRings();
+        drawParticles();
+        drawFloatingTexts();
+      }
 
       ctx.restore();
     }
@@ -1829,8 +1838,9 @@
     function drawLabScene() {
       const w = canvas.width;
       const h = canvas.height;
-      const groundY = h * 0.55;
+      const groundY = h * 0.60;
       const gap = w / 5;
+      const robotSize = Math.min(112, h * 0.205);
       const s = getLabSettings();
 
       ctx.fillStyle = "rgba(2, 6, 23, 0.82)";
@@ -1856,7 +1866,7 @@
       drawLabWindVisual(currentLabWind, s.pattern);
 
       labRobots.forEach((r, i) => {
-        drawLabRobotCard(r, gap * (i + 1), groundY, Math.min(126, h * 0.23), i);
+        drawLabRobotCard(r, gap * (i + 1), groundY, robotSize, i);
       });
 
       drawMultiGraph();
@@ -1908,7 +1918,7 @@
       const cardW = Math.min(188, canvas.width / 5.8);
       const cardH = 88;
       const cardX = x - cardW / 2;
-      const cardY = groundY - size - 106;
+      const cardY = groundY - size - 146;
       const score = robotStabilityScore(robot);
       const angleAbs = Math.abs(radToDeg(robot.theta));
       const subLabel = index === 0 ? "아무 제어 없음" : index === 1 ? "힘만 사용" : index === 2 ? "힘+브레이크" : "힘+브레이크+기억";
