@@ -642,7 +642,7 @@
     <header>
       <div class="title">
         <h1>PID 로봇 디펜스 : 안정판</h1>
-        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_GRAPHFIX_20260710 · 생존 모드 유지 · 비교 실험 그래프/겹침/가독성 수정</span>
+        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_CLEAN_BG_20260710 · 생존 모드 유지 · 비교 실험 배경/가독성 정리</span>
       </div>
 
       <div class="top-buttons">
@@ -1620,6 +1620,47 @@
     function drawBackground() {
       const w = canvas.width;
       const h = canvas.height;
+      const groundY = h * 0.76;
+
+      if (mode === "lab") {
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, "#07111f");
+        bg.addColorStop(1, "#0a1424");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.05)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 56) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += 56) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = "rgba(203, 213, 225, 0.10)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(w / 2, 0);
+        ctx.lineTo(w / 2, h);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(w, groundY);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(15, 23, 42, 0.18)";
+        ctx.fillRect(0, groundY, w, h - groundY);
+        return;
+      }
 
       ctx.fillStyle = "#020617";
       ctx.fillRect(0, 0, w, h);
@@ -1640,8 +1681,6 @@
         ctx.lineTo(w, y);
         ctx.stroke();
       }
-
-      const groundY = h * 0.76;
 
       ctx.strokeStyle = "#475569";
       ctx.lineWidth = 5;
