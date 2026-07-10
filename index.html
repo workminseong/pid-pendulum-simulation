@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PID 로봇 디펜스 : 안정판</title>
-  <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_20260706 -->
+  <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_SIM_FIXED_20260710 -->
 
   <style>
     * { box-sizing: border-box; }
@@ -315,6 +315,37 @@
     .boss-text { color: #facc15; font-weight: 900; }
     .success { color: #86efac; font-weight: 900; }
 
+
+    .game-only { display: block; }
+    .lab-only { display: none; }
+    body.lab-mode .game-only { display: none; }
+    body.lab-mode .lab-only { display: block; }
+
+    .control-row { margin-top: 12px; }
+    .control-row label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: #dbeafe;
+      font-size: 13px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+    .control-row label span:last-child { color: #86efac; }
+    input[type="range"] { width: 100%; accent-color: #60a5fa; }
+    select, input[type="number"] {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      background: #020617;
+      color: #e2e8f0;
+      font-weight: 800;
+    }
+    .lab-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .legend-row { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: center; margin: 7px 0; color: #cbd5e1; font-size: 13px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 999px; background: var(--c); }
+
     @media (max-width: 1050px) {
       body { overflow: auto; }
       .app { height: auto; }
@@ -345,7 +376,7 @@
     <header>
       <div class="title">
         <h1>PID 로봇 디펜스 : 안정판</h1>
-        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_20260706 · 캐릭터 항상 표시 · Q/W 조작 · Ki 자동 기억</span>
+        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_SIM_FIXED_20260710 · 생존 모드 유지 · 비교 실험 물리/그래프/시뮬레이션 패널 수정</span>
       </div>
 
       <div class="top-buttons">
@@ -356,57 +387,115 @@
 
     <main class="main">
       <aside class="panel">
-        <div class="card">
-          <h2>스킬 조작 패널</h2>
+        <div class="game-only">
+          <div class="card">
+            <h2>스킬 조작 패널</h2>
 
-          <div class="skill-box">
-            <div class="skill-label">
-              <span><span class="key">Q</span>Kp 힘</span>
-              <span id="kpValue">0</span>
+            <div class="skill-box">
+              <div class="skill-label">
+                <span><span class="key">Q</span>Kp 힘</span>
+                <span id="kpValue">0</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill kp-fill" id="kpFill"></div>
+              </div>
             </div>
-            <div class="skill-bar">
-              <div class="skill-fill kp-fill" id="kpFill"></div>
+
+            <div class="skill-box">
+              <div class="skill-label">
+                <span><span class="key">W</span>Kd 브레이크</span>
+                <span id="kdValue">0</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill kd-fill" id="kdFill"></div>
+              </div>
             </div>
+
+            <div class="skill-box">
+              <div class="skill-label">
+                <span><span class="key">AUTO</span>Ki 자동 기억</span>
+                <span id="kiValue">0</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill ki-fill" id="kiFill"></div>
+              </div>
+            </div>
+
+            <p class="tiny">Q/W는 누르고 있을 때만 차오르고, Ki는 작은 값으로 자동 유지된다.</p>
           </div>
 
-          <div class="skill-box">
-            <div class="skill-label">
-              <span><span class="key">W</span>Kd 브레이크</span>
-              <span id="kdValue">0</span>
-            </div>
-            <div class="skill-bar">
-              <div class="skill-fill kd-fill" id="kdFill"></div>
-            </div>
+          <div class="card">
+            <h2>실행</h2>
+            <button id="startBtn" class="green">게임 시작</button>
+            <button id="pauseBtn" class="secondary">일시 정지</button>
+            <label class="skip-row">
+              <input type="checkbox" id="skipTutorial" />
+              튜토리얼 스킵
+            </label>
           </div>
 
-          <div class="skill-box">
-            <div class="skill-label">
-              <span><span class="key">AUTO</span>Ki 자동 기억</span>
-              <span id="kiValue">0</span>
-            </div>
-            <div class="skill-bar">
-              <div class="skill-fill ki-fill" id="kiFill"></div>
-            </div>
+          <div class="card">
+            <h2>PID 한 줄 이해</h2>
+            <div class="pid-chip"><b class="p">P</b><span>기울어진 만큼 미는 힘</span></div>
+            <div class="pid-chip"><b class="d">B</b><span>빠른 흔들림을 잡는 브레이크</span></div>
+            <div class="pid-chip"><b class="i">I</b><span>작은 기울어짐을 자동 기억</span></div>
           </div>
-
-          <p class="tiny">Q/W는 누르고 있을 때만 차오르고, Ki는 작은 값으로 자동 유지된다.</p>
         </div>
 
-        <div class="card">
-          <h2>실행</h2>
-          <button id="startBtn" class="green">게임 시작</button>
-          <button id="pauseBtn" class="secondary">일시 정지</button>
-          <label class="skip-row">
-            <input type="checkbox" id="skipTutorial" />
-            튜토리얼 스킵
-          </label>
-        </div>
+        <div class="lab-only">
+          <div class="card">
+            <h2>비교 실험 설정</h2>
+            <div class="control-row">
+              <label>초기 각도 <span id="labAngleValue">14°</span></label>
+              <input id="labAngle" type="range" min="2" max="35" step="1" value="14" />
+            </div>
+            <div class="control-row">
+              <label>바람 세기 <span id="labWindValue">0.35</span></label>
+              <input id="labWind" type="range" min="0" max="1.2" step="0.01" value="0.35" />
+            </div>
+            <div class="control-row">
+              <label>바람 패턴 <span id="labPatternLabel">사인파</span></label>
+              <select id="labPattern">
+                <option value="sine">사인파 반복</option>
+                <option value="pulse">펄스 충격</option>
+                <option value="random">랜덤 값</option>
+                <option value="constant">한쪽 고정 바람</option>
+              </select>
+            </div>
+            <div class="control-row">
+              <label>랜덤 변화 속도 <span id="labRandomValue">1.0초</span></label>
+              <input id="labRandomRate" type="range" min="0.25" max="3" step="0.05" value="1" />
+            </div>
+            <div class="lab-actions">
+              <button id="labResetBtn" class="green">실험 재시작</button>
+              <button id="labRandomBtn" class="secondary">랜덤 값 생성</button>
+            </div>
+            <p class="tiny">비교 실험은 게임 조작이 아니라 실제 시뮬레이션처럼 같은 초기값과 같은 바람을 네 로봇에 동시에 넣어 비교한다.</p>
+          </div>
 
-        <div class="card">
-          <h2>PID 한 줄 이해</h2>
-          <div class="pid-chip"><b class="p">P</b><span>기울어진 만큼 미는 힘</span></div>
-          <div class="pid-chip"><b class="d">D</b><span>빠른 흔들림을 잡는 브레이크</span></div>
-          <div class="pid-chip"><b class="i">I</b><span>작은 기울어짐을 자동 기억</span></div>
+          <div class="card">
+            <h2>제어기 값</h2>
+            <div class="control-row">
+              <label>P 힘 Kp <span id="labKpValue">22</span></label>
+              <input id="labKp" type="range" min="0" max="60" step="1" value="22" />
+            </div>
+            <div class="control-row">
+              <label>B 브레이크 Kb <span id="labKbValue">10</span></label>
+              <input id="labKb" type="range" min="0" max="35" step="1" value="10" />
+            </div>
+            <div class="control-row">
+              <label>I 기억 Ki <span id="labKiValue">3</span></label>
+              <input id="labKi" type="range" min="0" max="15" step="0.5" value="3" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>그래프 색상</h2>
+            <div class="legend-row"><span class="legend-dot" style="--c:#94a3b8"></span><span>무제어: 그대로 넘어짐</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#fb923c"></span><span>P제어: 중심으로 밀지만 흔들림 큼</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#38bdf8"></span><span>PB제어: P + 브레이크</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#f472b6"></span><span>PID제어: P + B + 기억</span></div>
+          </div>
         </div>
       </aside>
 
@@ -495,6 +584,23 @@
     const tutorialNextBtn = document.getElementById("tutorialNextBtn");
     const tutorialSkipBtn = document.getElementById("tutorialSkipBtn");
 
+    const labAngle = document.getElementById("labAngle");
+    const labWind = document.getElementById("labWind");
+    const labPattern = document.getElementById("labPattern");
+    const labRandomRate = document.getElementById("labRandomRate");
+    const labKp = document.getElementById("labKp");
+    const labKb = document.getElementById("labKb");
+    const labKi = document.getElementById("labKi");
+    const labResetBtn = document.getElementById("labResetBtn");
+    const labRandomBtn = document.getElementById("labRandomBtn");
+    const labAngleValue = document.getElementById("labAngleValue");
+    const labWindValue = document.getElementById("labWindValue");
+    const labPatternLabel = document.getElementById("labPatternLabel");
+    const labRandomValue = document.getElementById("labRandomValue");
+    const labKpValue = document.getElementById("labKpValue");
+    const labKbValue = document.getElementById("labKbValue");
+    const labKiValue = document.getElementById("labKiValue");
+
     const G = 9.81;
     const L = 1.35;
     const MAX_TORQUE = 40;
@@ -545,6 +651,12 @@
     let gusts = [];
     let rings = [];
 
+    let labNoise = 0;
+    let labNoiseTarget = 0;
+    let labNoiseTimer = 0;
+    let labPulseMemory = 0;
+    let labRandomSeed = Math.random() * 9999;
+
     const tutorialSteps = [
       {
         title: "WAVE 0: 튜토리얼",
@@ -594,7 +706,7 @@
         makeRing(dir > 0 ? "#38bdf8" : "#f472b6");
       }
 
-      update(dt, gains, wind) {
+      update(dt, gains, wind, physicsMode = "game") {
         const error = -this.theta;
 
         this.integral += error * dt;
@@ -609,13 +721,18 @@
 
         if (this.type === "NONE") { kp = 0; kd = 0; ki = 0; }
         if (this.type === "P") { kd = 0; ki = 0; }
+        if (this.type === "PB") { ki = 0; }
         if (this.type === "PD") { ki = 0; }
 
         let torque = kp * error + kd * derivative + ki * this.integral;
         torque = clamp(torque, -MAX_TORQUE, MAX_TORQUE);
 
+        const gravityTerm = physicsMode === "lab"
+          ? (G / L) * Math.sin(this.theta)
+          : -(G / L) * Math.sin(this.theta);
+
         const alpha =
-          -(G / L) * Math.sin(this.theta)
+          gravityTerm
           - 0.09 * this.omega
           + torque / (L * L)
           + wind;
@@ -631,9 +748,9 @@
     const player = new Robot("PID 로봇", "#60a5fa", "PID");
     const labRobots = [
       new Robot("무제어", "#94a3b8", "NONE"),
-      new Robot("P", "#fb923c", "P"),
-      new Robot("PD", "#38bdf8", "PD"),
-      new Robot("PID", "#f472b6", "PID")
+      new Robot("P제어", "#fb923c", "P"),
+      new Robot("PB제어", "#38bdf8", "PB"),
+      new Robot("PID제어", "#f472b6", "PID")
     ];
 
     function getGains() {
@@ -674,6 +791,7 @@
     }
 
     function updateGaugeUI() {
+      if (!kpValue) return;
       kpValue.textContent = kpGauge.toFixed(0);
       kdValue.textContent = kdGauge.toFixed(0);
       kiValue.textContent = kiGauge.toFixed(0);
@@ -682,6 +800,96 @@
       kdFill.style.width = (kdGauge / maxKd * 100) + "%";
       kiFill.style.width = (kiGauge / maxKi * 100) + "%";
     }
+
+    function setModeUI() {
+      document.body.classList.toggle("lab-mode", mode === "lab");
+      gameModeBtn.classList.toggle("active", mode === "game");
+      labModeBtn.classList.toggle("active", mode === "lab");
+    }
+
+    function getLabSettings() {
+      return {
+        initialAngle: Number(labAngle.value),
+        windPower: Number(labWind.value),
+        pattern: labPattern.value,
+        randomRate: Number(labRandomRate.value),
+        kp: Number(labKp.value),
+        kb: Number(labKb.value),
+        ki: Number(labKi.value)
+      };
+    }
+
+    function updateLabControlUI() {
+      const s = getLabSettings();
+      labAngleValue.textContent = s.initialAngle.toFixed(0) + "°";
+      labWindValue.textContent = s.windPower.toFixed(2);
+      labRandomValue.textContent = s.randomRate.toFixed(1) + "초";
+      labKpValue.textContent = s.kp.toFixed(0);
+      labKbValue.textContent = s.kb.toFixed(0);
+      labKiValue.textContent = s.ki.toFixed(1).replace(".0", "");
+      const names = { sine: "사인파", pulse: "펄스", random: "랜덤", constant: "고정" };
+      labPatternLabel.textContent = names[s.pattern] || s.pattern;
+    }
+
+    function resetLabExperiment() {
+      const s = getLabSettings();
+      gameTime = 0;
+      running = true;
+      paused = false;
+      dead = false;
+      labNoise = 0;
+      labNoiseTarget = 0;
+      labNoiseTimer = 0;
+      labPulseMemory = 0;
+      labRobots.forEach(r => r.reset(s.initialAngle));
+      topMessage.textContent = "비교 실험 · " + s.pattern;
+      updateLabControlUI();
+    }
+
+    function labWindAt(t, dt) {
+      const s = getLabSettings();
+      if (s.pattern === "constant") return s.windPower;
+      if (s.pattern === "sine") return Math.sin(t * 1.25) * s.windPower;
+      if (s.pattern === "pulse") {
+        const pulse = Math.sin(t * 3.2) > 0.78 ? 1 : 0;
+        labPulseMemory += (pulse * s.windPower * 1.9 - labPulseMemory) * dt * 8;
+        return labPulseMemory + Math.sin(t * 0.9) * s.windPower * 0.18;
+      }
+      labNoiseTimer -= dt;
+      if (labNoiseTimer <= 0) {
+        labNoiseTarget = (Math.random() * 2 - 1) * s.windPower;
+        labNoiseTimer = Math.max(0.05, s.randomRate);
+      }
+      labNoise += (labNoiseTarget - labNoise) * dt * 4.5;
+      return labNoise;
+    }
+
+    function getLabGainsFor(robot) {
+      const s = getLabSettings();
+      if (robot.type === "NONE") return { kp: 0, kd: 0, ki: 0 };
+      if (robot.type === "P") return { kp: s.kp, kd: 0, ki: 0 };
+      if (robot.type === "PB") return { kp: s.kp, kd: s.kb, ki: 0 };
+      return { kp: s.kp, kd: s.kb, ki: s.ki };
+    }
+
+    [labAngle, labWind, labPattern, labRandomRate, labKp, labKb, labKi].forEach(el => {
+      el.addEventListener("input", function () {
+        updateLabControlUI();
+        if (mode === "lab" && (el === labAngle || el === labPattern)) resetLabExperiment();
+      });
+    });
+
+    labResetBtn.addEventListener("click", resetLabExperiment);
+    labRandomBtn.addEventListener("click", function () {
+      labRandomSeed = Math.random() * 9999;
+      labAngle.value = String(Math.floor(6 + Math.random() * 25));
+      labWind.value = (0.15 + Math.random() * 0.85).toFixed(2);
+      labRandomRate.value = (0.35 + Math.random() * 1.8).toFixed(2);
+      const patterns = ["sine", "pulse", "random", "constant"];
+      labPattern.value = patterns[Math.floor(Math.random() * patterns.length)];
+      updateLabControlUI();
+      if (mode === "lab") resetLabExperiment();
+    });
 
     document.addEventListener("keydown", function (e) {
       const key = e.key.toLowerCase();
@@ -720,26 +928,22 @@
 
     gameModeBtn.addEventListener("click", function () {
       mode = "game";
-      gameModeBtn.classList.add("active");
-      labModeBtn.classList.remove("active");
+      setModeUI();
       resetGame();
     });
 
     labModeBtn.addEventListener("click", function () {
       mode = "lab";
-      labModeBtn.classList.add("active");
-      gameModeBtn.classList.remove("active");
+      setModeUI();
       resetGame();
-      running = true;
-      paused = false;
-      topMessage.textContent = "비교 실험";
+      resetLabExperiment();
     });
 
     function startNewGame() {
       resetGame();
 
       if (mode === "lab") {
-        running = true;
+        resetLabExperiment();
         return;
       }
 
@@ -839,8 +1043,9 @@
       labRobots.forEach(r => r.reset(14));
 
       pauseBtn.textContent = "일시 정지";
-      topMessage.textContent = "READY";
+      topMessage.textContent = mode === "lab" ? "비교 실험" : "READY";
       updateGaugeUI();
+      updateLabControlUI();
       updateHUD();
     }
 
@@ -924,9 +1129,8 @@
           makeRing("#ef4444");
         }
       } else {
-        const gains = getGains();
-        const wind = Math.sin(gameTime * 1.0) * 0.20;
-        labRobots.forEach(r => r.update(dt, gains, wind));
+        const wind = labWindAt(gameTime, dt);
+        labRobots.forEach(r => r.update(dt, getLabGainsFor(r), wind, "lab"));
       }
     }
 
@@ -1067,7 +1271,11 @@
         hpFill.style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
       }
 
-      if (bossActive) {
+      if (mode === "lab") {
+        bossFill.style.width = Math.min(100, Number(labWind.value) / 1.2 * 100) + "%";
+        bossFill.style.background = "linear-gradient(90deg, #38bdf8, #facc15)";
+        bossInfo.textContent = "실험 바람 패턴: " + labPatternLabel.textContent;
+      } else if (bossActive) {
         bossFill.style.width = (100 * (1 - bossTimer / bossDuration)) + "%";
         bossFill.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
         bossInfo.textContent = "보스 진행 중: " + bossType;
@@ -1260,20 +1468,25 @@
     function drawLabScene() {
       const w = canvas.width;
       const h = canvas.height;
-      const groundY = h * 0.72;
+      const groundY = h * 0.58;
       const gap = w / 5;
+      const s = getLabSettings();
 
       ctx.fillStyle = "rgba(255,255,255,0.9)";
       ctx.textAlign = "center";
       ctx.font = "bold 28px Arial";
-      ctx.fillText("PID 제어 비교 실험", w / 2, 70);
+      ctx.fillText("PID 제어 비교 실험", w / 2, 64);
 
       ctx.font = "14px Arial";
       ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("같은 입력에서 어떤 로봇이 안정적인지 비교", w / 2, 96);
+      ctx.fillText("무제어 → P → PB → PID 순서로 안정성이 좋아지는지 같은 바람으로 비교", w / 2, 90);
+
+      ctx.fillStyle = "#93c5fd";
+      ctx.font = "12px Arial";
+      ctx.fillText("초기각 " + s.initialAngle.toFixed(0) + "° · 바람 " + s.windPower.toFixed(2) + " · " + labPatternLabel.textContent, w / 2, 112);
 
       labRobots.forEach((r, i) => {
-        drawRobot(r, gap * (i + 1), groundY, Math.min(150, h * 0.31), r.name);
+        drawRobot(r, gap * (i + 1), groundY, Math.min(132, h * 0.25), r.name);
       });
 
       drawMultiGraph();
@@ -1368,25 +1581,35 @@
     function drawMultiGraph() {
       const w = canvas.width;
       const h = canvas.height;
-      const gx = 40;
-      const gy = h - 155;
-      const gw = w - 80;
-      const gh = 100;
+      const gx = 44;
+      const gy = h - 132;
+      const gw = w - 88;
+      const gh = 108;
 
-      ctx.fillStyle = "rgba(15, 23, 42, 0.82)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
       roundRect(gx, gy, gw, gh, 16);
       ctx.fill();
 
       ctx.strokeStyle = "#334155";
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("각도 변화 그래프: 0°에 가까울수록 안정", gx + 18, gy + 20);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.24)";
       ctx.beginPath();
-      ctx.moveTo(gx + 20, gy + gh / 2);
-      ctx.lineTo(gx + gw - 20, gy + gh / 2);
+      ctx.moveTo(gx + 20, gy + gh / 2 + 10);
+      ctx.lineTo(gx + gw - 20, gy + gh / 2 + 10);
       ctx.stroke();
 
-      labRobots.forEach(robot => {
+      labRobots.forEach((robot, idx) => {
+        ctx.fillStyle = robot.color;
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(robot.name, gx + gw - 22, gy + 20 + idx * 18);
+
         if (robot.history.length < 2) return;
 
         ctx.strokeStyle = robot.color;
@@ -1395,7 +1618,7 @@
 
         robot.history.forEach((a, i) => {
           const x = gx + 20 + (i / 240) * (gw - 40);
-          const y = gy + gh / 2 - (a / 80) * (gh / 2 - 14);
+          const y = gy + gh / 2 + 10 - clamp(a, -80, 80) / 90 * (gh / 2 - 18);
 
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
@@ -1502,6 +1725,8 @@
     }
 
     resize();
+    setModeUI();
+    updateLabControlUI();
     resetGame();
     requestAnimationFrame(loop);
   </script>
