@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PID 로봇 디펜스 : 안정판</title>
-  <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_WIND_VISUAL_20260710 -->
+  <title>PID 시뮬레이션 웹사이트</title>
+  <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_EASY_WIND_20260710 -->
 
   <style>
     * { box-sizing: border-box; }
@@ -71,7 +71,7 @@
     .main {
       min-height: 0;
       display: grid;
-      grid-template-columns: 390px minmax(620px, 1fr) 300px;
+      grid-template-columns: 390px minmax(680px, 1fr) 300px;
     }
 
     .panel {
@@ -492,7 +492,7 @@
       border: 1px solid rgba(56, 189, 248, 0.22);
       color: #dbeafe;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
 
@@ -585,9 +585,10 @@
       50% { opacity: 1; transform: translateX(4px); }
     }
 
-    body.wind-pulse .wind-marker { background: #facc15; box-shadow: 0 0 22px rgba(250, 204, 21, 0.85); }
+    body.wind-left .wind-marker { background: #60a5fa; box-shadow: 0 0 22px rgba(96, 165, 250, 0.85); }
+    body.wind-right .wind-marker { background: #86efac; box-shadow: 0 0 22px rgba(134, 239, 172, 0.85); }
     body.wind-random .wind-marker { background: #f472b6; box-shadow: 0 0 22px rgba(244, 114, 182, 0.85); }
-    body.wind-constant .wind-marker { background: #86efac; box-shadow: 0 0 22px rgba(134, 239, 172, 0.85); }
+    body.wind-alternate .wind-marker { background: #facc15; box-shadow: 0 0 22px rgba(250, 204, 21, 0.85); }
 
     .legend-row {
       display: grid;
@@ -640,8 +641,8 @@
   <div class="app">
     <header>
       <div class="title">
-        <h1>PID 로봇 디펜스 : 안정판</h1>
-        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_WIND_VISUAL_20260710 · 생존 모드 유지 · 비교 실험 UI/그래프/랜덤 테스트 고급화</span>
+        <h1>PID 시뮬레이션 웹사이트</h1>
+        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_EASY_WIND_20260710 · 생존 모드 유지 · 비교 실험 UI/그래프/랜덤 테스트 고급화</span>
       </div>
 
       <div class="top-buttons">
@@ -709,9 +710,9 @@
 
         <div class="lab-only">
           <div class="lab-hero">
-            <span class="lab-badge">● SIMULATION LAB</span>
-            <h2>제어 비교 실험실</h2>
-            <p>같은 초기 각도와 같은 바람을 넣고, 무제어 · P · PB · PID의 안정성을 한 화면에서 비교한다.</p>
+            <span class="lab-badge">● 쉬운 PID 실험</span>
+            <h2>어떤 로봇이 덜 흔들릴까?</h2>
+            <p>네 로봇에게 같은 바람을 불어 보고, 중심을 가장 잘 잡는 제어 방식을 비교한다.</p>
           </div>
 
           <div class="card lab-card">
@@ -729,12 +730,12 @@
                 <input id="labWind" type="range" min="0" max="50" step="1" value="15" />
               </div>
               <div class="control-row lab-wide">
-                <label>바람 패턴 <span id="labPatternLabel">사인파</span></label>
+                <label>바람 방향 <span id="labPatternLabel">랜덤 바람</span></label>
                 <select id="labPattern">
-                  <option value="sine">사인파 반복</option>
-                  <option value="pulse">펄스 충격</option>
-                  <option value="random">랜덤 테스트 바람</option>
-                  <option value="constant">한쪽 고정 바람</option>
+                  <option value="random" selected>랜덤 바람</option>
+                  <option value="left">왼쪽 바람</option>
+                  <option value="right">오른쪽 바람</option>
+                  <option value="alternate">좌우 반복 바람</option>
                 </select>
               </div>
               <div class="control-row lab-wide">
@@ -745,7 +746,7 @@
 
             <div class="wind-monitor">
               <div class="wind-monitor-top">
-                <span>실시간 바람 시각화</span>
+                <span>지금 부는 바람</span>
                 <span class="wind-pill" id="labWindNow">현재 0.00</span>
               </div>
               <div class="wind-track"><span class="wind-marker" id="labWindMarker"></span></div>
@@ -755,25 +756,25 @@
               <button id="labRandomBtn" class="random-test">랜덤 테스트 시작</button>
               <button id="labResetBtn" class="green">현재 조건으로 재시작</button>
             </div>
-            <div class="lab-tip">랜덤 테스트는 설정값을 바꾸는 기능이 아니라, 불규칙한 바람과 돌풍을 자동으로 넣어 제어 성능을 비교하는 기능이다.</div>
+            <div class="lab-tip">랜덤 테스트를 누르면 수동 조작 없이 불규칙한 바람이 자동으로 계속 분다.</div>
           </div>
 
           <div class="card lab-card">
             <div class="lab-section-title">
               <span>제어기 튜닝</span>
-              <small>P / B / I</small>
+              <small>쉬운 설명</small>
             </div>
             <div class="lab-grid-2">
               <div class="control-row">
-                <label>P 힘 Kp <span id="labKpValue">22</span></label>
+                <label>P 힘 <span id="labKpValue">22</span></label>
                 <input id="labKp" type="range" min="0" max="60" step="1" value="22" />
               </div>
               <div class="control-row">
-                <label>B 브레이크 Kb <span id="labKbValue">10</span></label>
+                <label>B 브레이크 <span id="labKbValue">10</span></label>
                 <input id="labKb" type="range" min="0" max="35" step="1" value="10" />
               </div>
               <div class="control-row lab-wide">
-                <label>I 기억 Ki <span id="labKiValue">3</span></label>
+                <label>I 기억 <span id="labKiValue">3</span></label>
                 <input id="labKi" type="range" min="0" max="15" step="0.5" value="3" />
               </div>
             </div>
@@ -781,13 +782,13 @@
 
           <div class="card lab-card">
             <div class="lab-section-title">
-              <span>그래프 색상</span>
-              <small>안정성 비교</small>
+              <span>한눈에 이해하기</span>
+              <small>그래프가 0°에 가까울수록 좋음</small>
             </div>
-            <div class="legend-row"><span class="legend-dot" style="--c:#94a3b8"></span><span>무제어: 바람을 그대로 받아 크게 흔들림</span></div>
-            <div class="legend-row"><span class="legend-dot" style="--c:#fb923c"></span><span>P제어: 중심으로 밀지만 튕김이 남음</span></div>
-            <div class="legend-row"><span class="legend-dot" style="--c:#38bdf8"></span><span>PB제어: 브레이크로 흔들림을 줄임</span></div>
-            <div class="legend-row"><span class="legend-dot" style="--c:#f472b6"></span><span>PID제어: 작은 오차까지 보정</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#94a3b8"></span><span>무제어: 아무것도 안 해서 가장 많이 쓰러진다.</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#fb923c"></span><span>P: 기울어진 만큼 다시 세우는 힘이다.</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#38bdf8"></span><span>PB: P에 브레이크를 더해서 덜 출렁인다.</span></div>
+            <div class="legend-row"><span class="legend-dot" style="--c:#f472b6"></span><span>PID: 힘 + 브레이크 + 기억으로 가장 안정적이다.</span></div>
           </div>
         </div>
       </aside>
@@ -1122,11 +1123,12 @@
       labKpValue.textContent = s.kp.toFixed(0);
       labKbValue.textContent = s.kb.toFixed(0);
       labKiValue.textContent = s.ki.toFixed(1).replace(".0", "");
-      const names = { sine: "사인파", pulse: "펄스 충격", random: "랜덤 테스트", constant: "고정 바람" };
+      const names = { random: "랜덤 바람", left: "왼쪽 바람", right: "오른쪽 바람", alternate: "좌우 반복" };
       labPatternLabel.textContent = names[s.pattern] || s.pattern;
-      document.body.classList.toggle("wind-pulse", s.pattern === "pulse");
       document.body.classList.toggle("wind-random", s.pattern === "random");
-      document.body.classList.toggle("wind-constant", s.pattern === "constant");
+      document.body.classList.toggle("wind-left", s.pattern === "left");
+      document.body.classList.toggle("wind-right", s.pattern === "right");
+      document.body.classList.toggle("wind-alternate", s.pattern === "alternate");
     }
 
     function resetLabExperiment() {
@@ -1146,13 +1148,9 @@
 
     function labWindAt(t, dt) {
       const s = getLabSettings();
-      if (s.pattern === "constant") return s.windPower;
-      if (s.pattern === "sine") return Math.sin(t * 1.25) * s.windPower;
-      if (s.pattern === "pulse") {
-        const pulse = Math.sin(t * 3.2) > 0.78 ? 1 : 0;
-        labPulseMemory += (pulse * s.windPower * 1.9 - labPulseMemory) * dt * 8;
-        return labPulseMemory + Math.sin(t * 0.9) * s.windPower * 0.18;
-      }
+      if (s.pattern === "left") return -s.windPower;
+      if (s.pattern === "right") return s.windPower;
+      if (s.pattern === "alternate") return Math.sin(t * 1.25) * s.windPower;
       labNoiseTimer -= dt;
       if (labNoiseTimer <= 0) {
         // 불규칙한 연속 바람 + 가끔 강한 돌풍을 섞어서 실제 테스트처럼 보이게 한다.
@@ -1184,7 +1182,7 @@
       // 랜덤 테스트: 값을 마구 바꾸는 버튼이 아니라,
       // 같은 초기 조건에서 불규칙한 바람을 자동으로 넣어 비교하는 모드.
       labPattern.value = "random";
-      if (Number(labWind.value) < 22) labWind.value = "28";
+      if (Number(labWind.value) < 22) labWind.value = "32";
       if (Number(labRandomRate.value) > 1.2) labRandomRate.value = "0.65";
       labNoise = 0;
       labNoiseTarget = 0;
@@ -1195,8 +1193,8 @@
         setModeUI();
       }
       resetLabExperiment();
-      topMessage.textContent = "랜덤 테스트 진행 중";
-      addText("RANDOM WIND TEST", "#93c5fd");
+      topMessage.textContent = "랜덤 바람 테스트 진행 중";
+      addText("랜덤 바람 시작", "#93c5fd");
     });
 
     document.addEventListener("keydown", function (e) {
@@ -1583,7 +1581,7 @@
       if (mode === "lab") {
         bossFill.style.width = Math.min(100, Number(labWind.value) / 1.2 * 100) + "%";
         bossFill.style.background = "linear-gradient(90deg, #38bdf8, #facc15)";
-        bossInfo.textContent = "실험 바람 패턴: " + labPatternLabel.textContent;
+        bossInfo.textContent = "실험 바람: " + labPatternLabel.textContent;
       } else if (bossActive) {
         bossFill.style.width = (100 * (1 - bossTimer / bossDuration)) + "%";
         bossFill.style.background = "linear-gradient(90deg, #f97316, #ef4444)";
@@ -1657,7 +1655,9 @@
     }
 
     function drawRobot(robot, x, groundY, size, label) {
-      const theta = robot.theta;
+      let theta = robot.theta;
+      // 비교 실험에서는 무제어 로봇이 완전히 넘어졌을 때 막대가 화면 전체를 가리지 않도록 시각 각도만 제한한다.
+      if (mode === "lab") theta = clamp(theta, degToRad(-78), degToRad(78));
       const topX = x + size * Math.sin(theta);
       const topY = groundY - size * Math.cos(theta);
 
@@ -1788,29 +1788,25 @@
       const gap = w / 5;
       const s = getLabSettings();
 
-      const headerGradient = ctx.createLinearGradient(0, 0, w, 150);
-      headerGradient.addColorStop(0, "rgba(37, 99, 235, 0.16)");
-      headerGradient.addColorStop(0.5, "rgba(124, 58, 237, 0.12)");
-      headerGradient.addColorStop(1, "rgba(244, 114, 182, 0.06)");
-      ctx.fillStyle = headerGradient;
-      roundRect(32, 28, w - 64, 102, 26);
+      ctx.fillStyle = "rgba(2, 6, 23, 0.82)";
+      roundRect(38, 28, w - 76, 104, 24);
       ctx.fill();
-      ctx.strokeStyle = "rgba(147, 197, 253, 0.28)";
+      ctx.strokeStyle = "rgba(147, 197, 253, 0.34)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
+      ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
-      ctx.font = "bold 31px Arial";
-      ctx.fillText("PID 제어 비교 실험", w / 2, 66);
+      ctx.font = "bold 30px Arial";
+      ctx.fillText("같은 바람, 다른 제어 방식", w / 2, 64);
 
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillText("같은 바람을 동시에 입력해 무제어 → P → PB → PID 순서의 안정성 차이를 확인", w / 2, 92);
+      ctx.font = "bold 15px Arial";
+      ctx.fillStyle = "#dbeafe";
+      ctx.fillText("그래프가 가운데 0° 선에 가까울수록 로봇이 안정적으로 서 있는 것이다.", w / 2, 91);
 
       ctx.font = "bold 12px Arial";
       ctx.fillStyle = "#93c5fd";
-      ctx.fillText("초기각 " + s.initialAngle.toFixed(0) + "°   ·   바람 " + s.windRaw.toFixed(0) + "/50   ·   " + labPatternLabel.textContent + "   ·   " + gameTime.toFixed(1) + "초", w / 2, 113);
+      ctx.fillText("초기각 " + s.initialAngle.toFixed(0) + "°   ·   바람 세기 " + s.windRaw.toFixed(0) + "/50   ·   " + labPatternLabel.textContent + "   ·   " + gameTime.toFixed(1) + "초", w / 2, 114);
 
       drawLabWindVisual(currentLabWind, s.pattern);
 
@@ -1829,20 +1825,20 @@
       const y = 155;
       const strength = clamp(Math.abs(wind) / 2.5, 0, 1);
       const dir = wind >= 0 ? 1 : -1;
-      const label = pattern === "sine" ? "사인파 바람" : pattern === "pulse" ? "펄스 충격" : pattern === "random" ? "랜덤 테스트" : "고정 바람";
+      const label = pattern === "left" ? "왼쪽 바람" : pattern === "right" ? "오른쪽 바람" : pattern === "alternate" ? "좌우 반복 바람" : "랜덤 바람";
 
       ctx.save();
       ctx.fillStyle = "rgba(15, 23, 42, 0.66)";
       roundRect(cx - 210, y - 20, 420, 42, 999);
       ctx.fill();
-      ctx.strokeStyle = pattern === "random" ? "rgba(244, 114, 182, 0.55)" : pattern === "pulse" ? "rgba(250, 204, 21, 0.48)" : "rgba(96, 165, 250, 0.42)";
+      ctx.strokeStyle = pattern === "random" ? "rgba(244, 114, 182, 0.65)" : pattern === "left" ? "rgba(96, 165, 250, 0.58)" : pattern === "right" ? "rgba(134, 239, 172, 0.58)" : "rgba(250, 204, 21, 0.55)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
       ctx.textAlign = "center";
       ctx.font = "bold 13px Arial";
       ctx.fillStyle = "#dbeafe";
-      ctx.fillText(label + "  |  실시간 입력 " + wind.toFixed(2), cx, y + 5);
+      ctx.fillText(label + "  |  현재 바람 " + wind.toFixed(2), cx, y + 5);
 
       const arrowCount = 3 + Math.round(strength * 5);
       ctx.font = "bold " + (18 + strength * 10).toFixed(0) + "px Arial";
@@ -1895,9 +1891,10 @@
       ctx.fillText("현재 각도", cardX + 14, cardY + 50);
       ctx.fillText("안정 점수", cardX + cardW - 74, cardY + 50);
 
-      ctx.fillStyle = "#ffffff";
+      const angleAbs = Math.abs(radToDeg(robot.theta));
+      ctx.fillStyle = angleAbs > 80 ? "#fca5a5" : "#ffffff";
       ctx.font = "bold 18px Arial";
-      ctx.fillText(radToDeg(robot.theta).toFixed(1) + "°", cardX + 14, cardY + 73);
+      ctx.fillText(angleAbs > 80 ? "넘어짐" : radToDeg(robot.theta).toFixed(1) + "°", cardX + 14, cardY + 73);
       ctx.textAlign = "right";
       ctx.fillStyle = score > 75 ? "#86efac" : score > 42 ? "#facc15" : "#fca5a5";
       ctx.fillText(score.toFixed(0), cardX + cardW - 16, cardY + 73);
@@ -1910,7 +1907,7 @@
       ctx.fillStyle = robot.color;
       ctx.font = "bold 12px Arial";
       ctx.textAlign = "center";
-      ctx.fillText(index === 0 ? "기준" : index === 1 ? "P" : index === 2 ? "P+B" : "P+B+I", x, groundY + 28);
+      ctx.fillText(index === 0 ? "아무 제어 없음" : index === 1 ? "힘만 사용" : index === 2 ? "힘+브레이크" : "힘+브레이크+기억", x, groundY + 28);
       ctx.restore();
 
       drawRobot(robot, x, groundY, size, robot.name);
