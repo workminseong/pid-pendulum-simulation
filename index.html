@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PID 시뮬레이션 웹사이트</title>
+  <title>PID 로봇 디펜스 : 안정판</title>
   <!-- VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_EASY_WIND_20260710 -->
 
   <style>
@@ -641,8 +641,8 @@
   <div class="app">
     <header>
       <div class="title">
-        <h1>PID 시뮬레이션 웹사이트</h1>
-        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_EASY_WIND_20260710 · 생존 모드 유지 · 비교 실험 UI/그래프/랜덤 테스트 고급화</span>
+        <h1>PID 로봇 디펜스 : 안정판</h1>
+        <span>VERSION_STABLE_VISIBLE_ROBOT_QW_AUTO_KI_LAB_GRAPHFIX_20260710 · 생존 모드 유지 · 비교 실험 그래프/겹침/가독성 수정</span>
       </div>
 
       <div class="top-buttons">
@@ -1654,7 +1654,9 @@
       ctx.fillRect(0, groundY, w, h - groundY);
     }
 
-    function drawRobot(robot, x, groundY, size, label) {
+    function drawRobot(robot, x, groundY, size, label, options = {}) {
+      const showLabel = options.showLabel !== false;
+      const showAngle = options.showAngle !== false;
       let theta = robot.theta;
       // 비교 실험에서는 무제어 로봇이 완전히 넘어졌을 때 막대가 화면 전체를 가리지 않도록 시각 각도만 제한한다.
       if (mode === "lab") theta = clamp(theta, degToRad(-78), degToRad(78));
@@ -1722,14 +1724,18 @@
       ctx.stroke();
       ctx.restore();
 
-      ctx.fillStyle = "#e5e7eb";
-      ctx.textAlign = "center";
-      ctx.font = "bold 15px Arial";
-      ctx.fillText(label, x, groundY + 36);
+      if (showLabel) {
+        ctx.fillStyle = "#e5e7eb";
+        ctx.textAlign = "center";
+        ctx.font = "bold 15px Arial";
+        ctx.fillText(label, x, groundY + 36);
+      }
 
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "12px Arial";
-      ctx.fillText(radToDeg(robot.theta).toFixed(1) + "°", x, groundY + 55);
+      if (showAngle) {
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "12px Arial";
+        ctx.fillText(radToDeg(robot.theta).toFixed(1) + "°", x, groundY + 55);
+      }
     }
 
     function drawScene() {
@@ -1860,18 +1866,20 @@
     }
 
     function drawLabRobotCard(robot, x, groundY, size, index) {
-      const cardW = Math.min(190, canvas.width / 5.8);
-      const cardH = 86;
+      const cardW = Math.min(188, canvas.width / 5.8);
+      const cardH = 88;
       const cardX = x - cardW / 2;
-      const cardY = groundY - size - 105;
+      const cardY = groundY - size - 106;
       const score = robotStabilityScore(robot);
+      const angleAbs = Math.abs(radToDeg(robot.theta));
+      const subLabel = index === 0 ? "아무 제어 없음" : index === 1 ? "힘만 사용" : index === 2 ? "힘+브레이크" : "힘+브레이크+기억";
 
       ctx.save();
-      ctx.fillStyle = "rgba(15, 23, 42, 0.74)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
       roundRect(cardX, cardY, cardW, cardH, 18);
       ctx.fill();
       ctx.strokeStyle = robot.color;
-      ctx.globalAlpha = 0.55;
+      ctx.globalAlpha = 0.62;
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.globalAlpha = 1;
@@ -1891,7 +1899,6 @@
       ctx.fillText("현재 각도", cardX + 14, cardY + 50);
       ctx.fillText("안정 점수", cardX + cardW - 74, cardY + 50);
 
-      const angleAbs = Math.abs(radToDeg(robot.theta));
       ctx.fillStyle = angleAbs > 80 ? "#fca5a5" : "#ffffff";
       ctx.font = "bold 18px Arial";
       ctx.fillText(angleAbs > 80 ? "넘어짐" : radToDeg(robot.theta).toFixed(1) + "°", cardX + 14, cardY + 73);
@@ -1900,17 +1907,18 @@
       ctx.fillText(score.toFixed(0), cardX + cardW - 16, cardY + 73);
       ctx.restore();
 
-      ctx.save();
-      ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
-      roundRect(x - 64, groundY + 10, 128, 26, 999);
-      ctx.fill();
-      ctx.fillStyle = robot.color;
-      ctx.font = "bold 12px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(index === 0 ? "아무 제어 없음" : index === 1 ? "힘만 사용" : index === 2 ? "힘+브레이크" : "힘+브레이크+기억", x, groundY + 28);
-      ctx.restore();
+      drawRobot(robot, x, groundY, size, robot.name, { showLabel: false, showAngle: false });
 
-      drawRobot(robot, x, groundY, size, robot.name);
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 12px Arial";
+      ctx.fillText(robot.name, x, groundY + 34);
+
+      ctx.fillStyle = robot.color;
+      ctx.font = "bold 11px Arial";
+      ctx.fillText(subLabel, x, groundY + 51);
+      ctx.restore();
     }
 
     function drawDangerZones() {
@@ -2011,10 +2019,11 @@
       const plotW = gw - 52;
       const plotH = gh - 62;
       const midY = plotY + plotH / 2;
+      const maxGraphDeg = 45;
 
       const grad = ctx.createLinearGradient(gx, gy, gx, gy + gh);
-      grad.addColorStop(0, "rgba(15, 23, 42, 0.94)");
-      grad.addColorStop(1, "rgba(2, 6, 23, 0.90)");
+      grad.addColorStop(0, "rgba(15, 23, 42, 0.96)");
+      grad.addColorStop(1, "rgba(2, 6, 23, 0.92)");
       ctx.fillStyle = grad;
       roundRect(gx, gy, gw, gh, 22);
       ctx.fill();
@@ -2028,7 +2037,13 @@
       ctx.fillText("실시간 각도 그래프", gx + 20, gy + 25);
       ctx.fillStyle = "#94a3b8";
       ctx.font = "11px Arial";
-      ctx.fillText("중앙선 0°에 가까울수록 안정적", gx + 154, gy + 25);
+      ctx.fillText("가운데 흰 선이 0° 중심선", gx + 154, gy + 25);
+
+      ctx.fillStyle = "rgba(203, 213, 225, 0.75)";
+      ctx.font = "10px Arial";
+      ctx.fillText("+" + maxGraphDeg + "°", plotX + 2, plotY + 10);
+      ctx.fillText("0°", plotX + 6, midY - 4);
+      ctx.fillText("-" + maxGraphDeg + "°", plotX + 2, plotY + plotH - 4);
 
       ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
       ctx.lineWidth = 1;
@@ -2047,19 +2062,19 @@
         ctx.stroke();
       }
 
-      ctx.strokeStyle = "rgba(255,255,255,0.34)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(255,255,255,0.82)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(plotX, midY);
       ctx.lineTo(plotX + plotW, midY);
       ctx.stroke();
 
-      labRobots.forEach((robot, idx) => {
-        ctx.fillStyle = robot.color;
-        ctx.font = "bold 12px Arial";
-        ctx.textAlign = "right";
-        ctx.fillText(robot.name, gx + gw - 24, gy + 24 + idx * 18);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(plotX, plotY, plotW, plotH);
+      ctx.clip();
 
+      labRobots.forEach((robot, idx) => {
         if (robot.history.length < 2) return;
 
         ctx.strokeStyle = robot.color;
@@ -2068,13 +2083,23 @@
 
         robot.history.forEach((a, i) => {
           const x = plotX + (i / 240) * plotW;
-          const y = midY - clamp(a, -80, 80) / 90 * (plotH / 2 - 5);
+          const clamped = clamp(a, -maxGraphDeg, maxGraphDeg);
+          const y = midY - (clamped / maxGraphDeg) * (plotH / 2 - 8);
 
           if (i === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         });
 
         ctx.stroke();
+      });
+
+      ctx.restore();
+
+      labRobots.forEach((robot, idx) => {
+        ctx.fillStyle = robot.color;
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(robot.name, gx + gw - 24, gy + 24 + idx * 18);
       });
     }
 
