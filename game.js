@@ -1,4 +1,4 @@
-const GAME_JS_VERSION = "GAME_JS_HEAT_RISE_VISUAL_FORCE_FINAL_20260716";
+const GAME_JS_VERSION = "GAME_JS_PREMIUM_VISUAL_NO_COVER_FINAL_20260716";
 
 const explainPage = document.getElementById("explainPage");
 const experimentPage = document.getElementById("experimentPage");
@@ -769,66 +769,124 @@ function drawSky(w, h) {
 function drawEnvironmentOverlay(w, h) {
   scene.save();
 
+  // 배경 전체를 덮지 않고 가장자리 빛과 하늘 분위기만 살짝 보여준다.
+  // 건물 시각화를 가리지 않는 것이 핵심이다.
   if (running && envMode.includes("폭염")) {
-    scene.globalAlpha = 0.16;
-    scene.fillStyle = "#fb923c";
+    const heatGlow = scene.createRadialGradient(
+      w * 0.16,
+      h * 0.15,
+      20,
+      w * 0.16,
+      h * 0.15,
+      Math.max(w, h) * 0.55
+    );
+
+    heatGlow.addColorStop(0, "rgba(251, 146, 60, 0.22)");
+    heatGlow.addColorStop(0.42, "rgba(251, 146, 60, 0.08)");
+    heatGlow.addColorStop(1, "rgba(251, 146, 60, 0.00)");
+
+    scene.fillStyle = heatGlow;
     scene.fillRect(0, 0, w, h * 0.72);
   }
 
   if (running && envMode.includes("폭우")) {
-    scene.globalAlpha = 0.13;
-    scene.fillStyle = "#22d3ee";
+    const rainGlow = scene.createLinearGradient(0, 0, 0, h * 0.72);
+    rainGlow.addColorStop(0, "rgba(56, 189, 248, 0.08)");
+    rainGlow.addColorStop(0.38, "rgba(56, 189, 248, 0.03)");
+    rainGlow.addColorStop(1, "rgba(56, 189, 248, 0.00)");
+
+    scene.fillStyle = rainGlow;
     scene.fillRect(0, 0, w, h * 0.72);
   }
 
   if (running && envMode.includes("폭설")) {
-    scene.globalAlpha = 0.15;
-    scene.fillStyle = "#bfdbfe";
+    const snowGlow = scene.createLinearGradient(0, 0, 0, h * 0.72);
+    snowGlow.addColorStop(0, "rgba(219, 234, 254, 0.10)");
+    snowGlow.addColorStop(0.42, "rgba(219, 234, 254, 0.035)");
+    snowGlow.addColorStop(1, "rgba(219, 234, 254, 0.00)");
+
+    scene.fillStyle = snowGlow;
     scene.fillRect(0, 0, w, h * 0.72);
   }
 
   if (running && envMode.includes("복합")) {
-    scene.globalAlpha = 0.12;
-    scene.fillStyle = "#facc15";
+    const disasterGlow = scene.createRadialGradient(
+      w * 0.2,
+      h * 0.12,
+      20,
+      w * 0.2,
+      h * 0.12,
+      Math.max(w, h) * 0.58
+    );
+
+    disasterGlow.addColorStop(0, "rgba(250, 204, 21, 0.14)");
+    disasterGlow.addColorStop(0.50, "rgba(56, 189, 248, 0.05)");
+    disasterGlow.addColorStop(1, "rgba(0, 0, 0, 0.00)");
+
+    scene.fillStyle = disasterGlow;
     scene.fillRect(0, 0, w, h * 0.72);
   }
 
-  scene.globalAlpha = 1;
   scene.restore();
 }
 
 function drawParticles() {
   particles.forEach(p => {
-    scene.globalAlpha = clamp(p.life / 4, 0, 1);
+    const alpha = clamp(p.life / 4, 0, 0.88);
+
+    scene.save();
+    scene.globalAlpha = alpha;
 
     if (p.type === "heat") {
-      scene.fillStyle = "#fb923c";
+      const radius = p.size * (1.1 + Math.sin(time * 4 + p.x * 0.03) * 0.18);
+
+      const heatGradient = scene.createRadialGradient(
+        p.x,
+        p.y,
+        0,
+        p.x,
+        p.y,
+        radius * 2.2
+      );
+
+      heatGradient.addColorStop(0, "rgba(253, 186, 116, 0.80)");
+      heatGradient.addColorStop(0.45, "rgba(251, 146, 60, 0.28)");
+      heatGradient.addColorStop(1, "rgba(251, 146, 60, 0.00)");
+
+      scene.fillStyle = heatGradient;
       scene.beginPath();
-      scene.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      scene.arc(p.x, p.y, radius * 2.2, 0, Math.PI * 2);
       scene.fill();
 
       scene.fillStyle = "#fed7aa";
-      scene.font = "20px Arial";
-      scene.fillText("☀", p.x - 8, p.y + 6);
+      scene.font = "18px Arial";
+      scene.fillText("☀", p.x - 7, p.y + 6);
     }
 
     if (p.type === "snow") {
-      scene.fillStyle = "#dbeafe";
-      scene.font = "22px Arial";
+      scene.fillStyle = "rgba(219, 234, 254, 0.92)";
+      scene.font = "20px Arial";
       scene.fillText("❄", p.x, p.y);
     }
 
     if (p.type === "rain" || p.type === "stress") {
-      scene.strokeStyle = "#38bdf8";
-      scene.lineWidth = 3;
+      scene.strokeStyle = "rgba(56, 189, 248, 0.88)";
+      scene.lineWidth = 2.3;
       scene.beginPath();
       scene.moveTo(p.x, p.y);
-      scene.lineTo(p.x - 10, p.y + 24);
+      scene.lineTo(p.x - 12, p.y + 28);
+      scene.stroke();
+
+      scene.strokeStyle = "rgba(191, 219, 254, 0.18)";
+      scene.lineWidth = 5;
+      scene.beginPath();
+      scene.moveTo(p.x + 1, p.y - 1);
+      scene.lineTo(p.x - 11, p.y + 27);
       scene.stroke();
     }
 
     if (p.type === "quake") {
-      scene.strokeStyle = "#f87171";
+      scene.strokeStyle = "rgba(248, 113, 113, 0.86)";
       scene.lineWidth = 3;
       scene.beginPath();
       scene.moveTo(p.x - 16, p.y);
@@ -837,7 +895,7 @@ function drawParticles() {
       scene.stroke();
     }
 
-    scene.globalAlpha = 1;
+    scene.restore();
   });
 }
 
@@ -1837,7 +1895,7 @@ function ensureDomVisualLayer() {
 
       .dom-weather-layer.rain span {
         color: #38bdf8;
-        font-size: 32px;
+        font-size: 24px;
       }
 
       .dom-weather-layer.snow span {
