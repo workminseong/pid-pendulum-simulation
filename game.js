@@ -1,3 +1,5 @@
+const GAME_JS_VERSION = "GAME_JS_VISIBLE_DOM_BUILDINGS_ACCEL_FINAL_20260716";
+
 const explainPage = document.getElementById("explainPage");
 const experimentPage = document.getElementById("experimentPage");
 
@@ -75,6 +77,8 @@ let outsideHum = 45;
 let quake = 0;
 let quakeTimer = 0;
 let screenShake = 0;
+let envModeElapsed = 0;
+let lastEnvModeForTimer = "정상";
 
 let particles = [];
 let eventTexts = [];
@@ -132,6 +136,8 @@ function showPage(pageName) {
     resizeCanvases();
     drawScene();
     drawGraphs();
+    updateDomVisualLayer();
+    updateDomVisualLayer();
   });
 }
 
@@ -156,6 +162,8 @@ window.addEventListener("resize", () => {
   resizeCanvases();
   drawScene();
   drawGraphs();
+  updateDomVisualLayer();
+  updateDomVisualLayer();
 });
 
 function resetBuilding(building) {
@@ -196,6 +204,8 @@ function resetSimulation() {
   quake = 0;
   quakeTimer = 0;
   screenShake = 0;
+  envModeElapsed = 0;
+  lastEnvModeForTimer = "정상";
 
   particles = [];
   eventTexts = [];
@@ -212,6 +222,8 @@ function resetSimulation() {
   resizeCanvases();
   drawScene();
   drawGraphs();
+  updateDomVisualLayer();
+  updateDomVisualLayer();
 }
 
 function setActiveButton(button) {
@@ -246,6 +258,8 @@ function ensureRunning() {
     resizeCanvases();
     drawScene();
     drawGraphs();
+    updateDomVisualLayer();
+    updateDomVisualLayer();
   });
 }
 
@@ -335,6 +349,8 @@ pauseBtn.addEventListener("click", () => {
 
 function setEnvironment(name, temp, hum, message, color, particleType) {
   envMode = name;
+  envModeElapsed = 0;
+  lastEnvModeForTimer = name;
   envTempTarget = temp;
   envHumTarget = hum;
   mainMessage.textContent = message;
@@ -346,10 +362,14 @@ function setEnvironment(name, temp, hum, message, color, particleType) {
 
   drawScene();
   drawGraphs();
+  updateDomVisualLayer();
+  updateDomVisualLayer();
 }
 
 function triggerQuake(power) {
   envMode = power > 1.2 ? "강진 Strong Quake" : "지진 Earthquake";
+  envModeElapsed = 0;
+  lastEnvModeForTimer = envMode;
   ensureRunning();
 
   quake = power;
@@ -372,6 +392,8 @@ function triggerQuake(power) {
 
   drawScene();
   drawGraphs();
+  updateDomVisualLayer();
+  updateDomVisualLayer();
 }
 
 function addEventText(text, color) {
@@ -409,8 +431,42 @@ function updateSimulation(dt) {
 
   time += dt;
 
-  outsideTemp += (envTempTarget - outsideTemp) * dt * 1.05;
-  outsideHum += (envHumTarget - outsideHum) * dt * 0.95;
+  if (envMode !== lastEnvModeForTimer) {
+    envModeElapsed = 0;
+    lastEnvModeForTimer = envMode;
+  }
+
+  envModeElapsed += dt;
+
+  let effectiveTempTarget = envTempTarget;
+  let effectiveHumTarget = envHumTarget;
+  let tempSpeed = 1.05;
+  let humSpeed = 0.95;
+
+  if (envMode.includes("폭염")) {
+    effectiveTempTarget = envTempTarget + Math.min(22, envModeElapsed * 1.25);
+    tempSpeed = 1.20 + Math.min(2.80, envModeElapsed * 0.08);
+  }
+
+  if (envMode.includes("폭설")) {
+    effectiveTempTarget = envTempTarget - Math.min(10, envModeElapsed * 0.55);
+    tempSpeed = 1.15 + Math.min(2.20, envModeElapsed * 0.06);
+  }
+
+  if (envMode.includes("폭우")) {
+    effectiveHumTarget = Math.min(100, envHumTarget + Math.min(8, envModeElapsed * 0.50));
+    humSpeed = 1.20 + Math.min(2.50, envModeElapsed * 0.07);
+  }
+
+  if (envMode.includes("복합")) {
+    effectiveTempTarget = envTempTarget + Math.min(18, envModeElapsed * 1.00);
+    effectiveHumTarget = Math.min(100, envHumTarget + Math.min(6, envModeElapsed * 0.45));
+    tempSpeed = 1.35 + Math.min(2.60, envModeElapsed * 0.08);
+    humSpeed = 1.25 + Math.min(2.30, envModeElapsed * 0.07);
+  }
+
+  outsideTemp += (effectiveTempTarget - outsideTemp) * dt * tempSpeed;
+  outsideHum += (effectiveHumTarget - outsideHum) * dt * humSpeed;
 
   if (quakeTimer > 0) {
     quakeTimer -= dt;
@@ -463,8 +519,8 @@ function addContinuousEnvironmentParticles() {
 }
 
 function updateNormalBuilding(dt) {
-  normal.temp += (outsideTemp - normal.temp) * dt * 0.42;
-  normal.hum += (outsideHum - normal.hum) * dt * 0.36;
+  normal.temp += (outsideTemp - normal.temp) * dt * 0.62;
+  normal.hum += (outsideHum - normal.hum) * dt * 0.54;
 
   const quakeTorque =
     Math.sin(time * 16) * quake * 3.7 +
@@ -1418,6 +1474,519 @@ function roundRect(context, x, y, w, h, r) {
   context.closePath();
 }
 
+
+function ensureDomVisualLayer() {
+  const panel = document.querySelector(".canvas-panel");
+
+  if (!panel) {
+    return null;
+  }
+
+  panel.style.position = "relative";
+
+  let style = document.getElementById("domBuildingVisualStyle");
+
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "domBuildingVisualStyle";
+    style.textContent = `
+      .dom-visual-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .hud {
+        z-index: 5;
+      }
+
+      .status-ribbon {
+        z-index: 5;
+      }
+
+      .dom-building {
+        position: absolute;
+        bottom: 18%;
+        width: 150px;
+        height: 285px;
+        border-radius: 18px;
+        transform-origin: 50% 100%;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.40);
+        transition: filter 0.2s linear;
+      }
+
+      .normal-building {
+        left: 30%;
+        margin-left: -75px;
+        background: linear-gradient(180deg, #475569, #1f2937);
+        border: 4px solid #cbd5e1;
+      }
+
+      .pid-building {
+        left: 68%;
+        margin-left: -75px;
+        background: linear-gradient(180deg, #155e75, #0f766e 55%, #134e4a);
+        border: 4px solid #67e8f9;
+        box-shadow: 0 0 32px rgba(103, 232, 249, 0.35), 0 18px 45px rgba(0, 0, 0, 0.40);
+      }
+
+      .dom-building-title {
+        position: absolute;
+        left: 50%;
+        bottom: -34px;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-weight: 900;
+        font-size: 15px;
+        color: white;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      }
+
+      .dom-window-grid {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        top: 36px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px 7px;
+      }
+
+      .dom-window-grid span {
+        height: 15px;
+        border-radius: 4px;
+        background: rgba(203, 213, 225, 0.62);
+      }
+
+      .pid-building .dom-window-grid span {
+        background: rgba(165, 243, 252, 0.88);
+      }
+
+      .dom-system-labels {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 8px;
+        text-align: center;
+        font-weight: 900;
+        line-height: 1.25;
+        font-size: 14px;
+      }
+
+      .dom-system-labels .cool {
+        color: #67e8f9;
+      }
+
+      .dom-system-labels .hum {
+        color: #d8b4fe;
+      }
+
+      .dom-system-labels .damper {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 232px;
+        color: #86efac;
+      }
+
+      .dom-plant {
+        position: absolute;
+        left: 50%;
+        bottom: 34px;
+        width: 58px;
+        height: 78px;
+        transform: translateX(-50%);
+      }
+
+      .dom-pot {
+        position: absolute;
+        left: 14px;
+        bottom: 0;
+        width: 30px;
+        height: 20px;
+        border-radius: 5px;
+        background: #8b5a2b;
+      }
+
+      .dom-stem {
+        position: absolute;
+        left: 28px;
+        bottom: 18px;
+        width: 4px;
+        height: 44px;
+        border-radius: 999px;
+        background: #166534;
+      }
+
+      .dom-leaf {
+        position: absolute;
+        width: 25px;
+        height: 38px;
+        border-radius: 50%;
+        background: #4ade80;
+        transform-origin: 50% 100%;
+      }
+
+      .leaf-left {
+        left: 4px;
+        bottom: 32px;
+        transform: rotate(-42deg);
+      }
+
+      .leaf-right {
+        right: 4px;
+        bottom: 32px;
+        transform: rotate(42deg);
+      }
+
+      .leaf-top {
+        left: 17px;
+        bottom: 48px;
+        transform: rotate(0deg);
+      }
+
+      .weak-plant .dom-leaf {
+        background: #facc15;
+      }
+
+      .dead-plant .dom-leaf {
+        background: #a16207;
+        transform: rotate(105deg) translateY(18px);
+      }
+
+      .dead-plant .leaf-right {
+        transform: rotate(-105deg) translateY(18px);
+      }
+
+      .dead-plant .leaf-top {
+        transform: rotate(180deg) translateY(20px);
+      }
+
+      .dom-env-label {
+        position: absolute;
+        left: 50%;
+        top: 84px;
+        transform: translateX(-50%);
+        font-weight: 900;
+        font-size: 17px;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        opacity: 0;
+      }
+
+      .state-hot .hot-label,
+      .state-cold .cold-label,
+      .state-mold .mold-label,
+      .state-dry .dry-label {
+        opacity: 1;
+      }
+
+      .hot-label {
+        color: #fed7aa;
+      }
+
+      .cold-label {
+        color: #dbeafe;
+      }
+
+      .mold-label {
+        color: #86efac;
+      }
+
+      .dry-label {
+        color: #fde68a;
+      }
+
+      .state-hot {
+        box-shadow: inset 0 0 70px rgba(251, 146, 60, 0.36), 0 18px 45px rgba(0, 0, 0, 0.40);
+      }
+
+      .state-cold {
+        box-shadow: inset 0 0 70px rgba(147, 197, 253, 0.38), 0 18px 45px rgba(0, 0, 0, 0.40);
+      }
+
+      .state-mold {
+        box-shadow: inset 0 0 80px rgba(34, 197, 94, 0.38), 0 18px 45px rgba(0, 0, 0, 0.40);
+      }
+
+      .state-dry {
+        box-shadow: inset 0 0 70px rgba(250, 204, 21, 0.28), 0 18px 45px rgba(0, 0, 0, 0.40);
+      }
+
+      .dom-flow {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 14px;
+      }
+
+      .dom-flow i {
+        position: absolute;
+        left: 12px;
+        width: 126px;
+        height: 4px;
+        border-radius: 999px;
+        opacity: 0;
+        animation: domFlowMove 1.35s infinite ease-in-out;
+      }
+
+      .dom-flow i:nth-child(1) { top: 72px; animation-delay: 0s; }
+      .dom-flow i:nth-child(2) { top: 112px; animation-delay: 0.18s; }
+      .dom-flow i:nth-child(3) { top: 152px; animation-delay: 0.36s; }
+      .dom-flow i:nth-child(4) { top: 192px; animation-delay: 0.54s; }
+
+      .heating .dom-flow i {
+        opacity: 0.85;
+        background: linear-gradient(90deg, transparent, #f87171, transparent);
+      }
+
+      .cooling .dom-flow i {
+        opacity: 0.85;
+        background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+      }
+
+      .dom-hum-text {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 72px;
+        text-align: center;
+        color: #e9d5ff;
+        font-weight: 900;
+        opacity: 0;
+      }
+
+      .humidifying .dom-hum-text,
+      .dehumidifying .dom-hum-text {
+        opacity: 1;
+      }
+
+      .dom-damper {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 28px;
+        height: 5px;
+        border-radius: 999px;
+        background: #86efac;
+        opacity: 0;
+      }
+
+      .damper-on .dom-damper {
+        opacity: 1;
+        animation: damperShake 0.25s infinite alternate;
+      }
+
+      .dom-weather-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .dom-weather-layer span {
+        position: absolute;
+        top: -40px;
+        font-size: 24px;
+        animation-name: weatherFall;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+
+      .dom-weather-layer.heat span {
+        color: #fb923c;
+        text-shadow: 0 0 18px rgba(251, 146, 60, 0.7);
+      }
+
+      .dom-weather-layer.rain span {
+        color: #38bdf8;
+        font-size: 32px;
+      }
+
+      .dom-weather-layer.snow span {
+        color: #dbeafe;
+        text-shadow: 0 0 14px rgba(219, 234, 254, 0.8);
+      }
+
+      @keyframes weatherFall {
+        from { transform: translateY(-40px); opacity: 0; }
+        10% { opacity: 1; }
+        to { transform: translateY(560px); opacity: 0; }
+      }
+
+      @keyframes domFlowMove {
+        from { transform: translateX(-36px); }
+        50% { transform: translateX(36px); }
+        to { transform: translateX(-36px); }
+      }
+
+      @keyframes damperShake {
+        from { transform: translateX(-5px); }
+        to { transform: translateX(5px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  let layer = panel.querySelector(".dom-visual-layer");
+
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.className = "dom-visual-layer";
+
+    const windowSpans = "<span></span>".repeat(28);
+
+    layer.innerHTML = `
+      <div class="dom-weather-layer" id="domWeatherLayer"></div>
+
+      <div class="dom-building normal-building" id="normalDomBuilding">
+        <div class="dom-window-grid">${windowSpans}</div>
+        <div class="dom-env-label hot-label">고온</div>
+        <div class="dom-env-label cold-label">냉해</div>
+        <div class="dom-env-label mold-label">곰팡이</div>
+        <div class="dom-env-label dry-label">건조</div>
+        <div class="dom-plant">
+          <div class="dom-stem"></div>
+          <div class="dom-leaf leaf-left"></div>
+          <div class="dom-leaf leaf-right"></div>
+          <div class="dom-leaf leaf-top"></div>
+          <div class="dom-pot"></div>
+        </div>
+        <div class="dom-building-title">일반 건물</div>
+      </div>
+
+      <div class="dom-building pid-building" id="pidDomBuilding">
+        <div class="dom-system-labels">
+          <div class="cool">냉난방</div>
+          <div class="hum">습도제어</div>
+          <div class="damper">제진장치</div>
+        </div>
+        <div class="dom-window-grid">${windowSpans}</div>
+        <div class="dom-env-label hot-label">고온</div>
+        <div class="dom-env-label cold-label">냉해</div>
+        <div class="dom-env-label mold-label">곰팡이</div>
+        <div class="dom-env-label dry-label">건조</div>
+        <div class="dom-flow"><i></i><i></i><i></i><i></i></div>
+        <div class="dom-hum-text">습도 제어</div>
+        <div class="dom-damper"></div>
+        <div class="dom-plant">
+          <div class="dom-stem"></div>
+          <div class="dom-leaf leaf-left"></div>
+          <div class="dom-leaf leaf-right"></div>
+          <div class="dom-leaf leaf-top"></div>
+          <div class="dom-pot"></div>
+        </div>
+        <div class="dom-building-title">PID 제어 건물</div>
+      </div>
+    `;
+
+    panel.appendChild(layer);
+
+    const weatherLayer = layer.querySelector("#domWeatherLayer");
+
+    for (let i = 0; i < 50; i++) {
+      const item = document.createElement("span");
+      item.style.left = `${Math.random() * 100}%`;
+      item.style.animationDuration = `${2.2 + Math.random() * 2.8}s`;
+      item.style.animationDelay = `${Math.random() * 3.2}s`;
+      weatherLayer.appendChild(item);
+    }
+  }
+
+  return layer;
+}
+
+function classForEnvState(state) {
+  if (state === "hot") return "state-hot";
+  if (state === "cold") return "state-cold";
+  if (state === "mold") return "state-mold";
+  if (state === "dry") return "state-dry";
+  return "";
+}
+
+function plantClass(plantHealth) {
+  if (plantHealth <= 35) {
+    return "dead-plant";
+  }
+
+  if (plantHealth <= 72) {
+    return "weak-plant";
+  }
+
+  return "";
+}
+
+function updateDomVisualLayer() {
+  const layer = ensureDomVisualLayer();
+
+  if (!layer) {
+    return;
+  }
+
+  const normalEl = layer.querySelector("#normalDomBuilding");
+  const pidEl = layer.querySelector("#pidDomBuilding");
+  const weatherLayer = layer.querySelector("#domWeatherLayer");
+
+  if (!normalEl || !pidEl || !weatherLayer) {
+    return;
+  }
+
+  const normalAngle = clamp(normal.angle, -0.52, 0.52) * 57.3;
+  const pidAngle = clamp(pid.angle, -0.30, 0.30) * 57.3;
+
+  normalEl.style.transform = `rotate(${normalAngle}deg)`;
+  pidEl.style.transform = `rotate(${pidAngle}deg)`;
+
+  normalEl.className = `dom-building normal-building ${classForEnvState(normal.envState)} ${plantClass(normal.plantHealth)}`;
+  pidEl.className = `dom-building pid-building ${classForEnvState(pid.envState)} ${plantClass(pid.plantHealth)}`;
+
+  if (pid.tempOutput > 0.22) {
+    pidEl.classList.add("heating");
+  }
+
+  if (pid.tempOutput < -0.22) {
+    pidEl.classList.add("cooling");
+  }
+
+  const humText = pidEl.querySelector(".dom-hum-text");
+
+  if (pid.humOutput > 0.22) {
+    pidEl.classList.add("humidifying");
+    if (humText) humText.textContent = "가습 작동";
+  }
+
+  if (pid.humOutput < -0.22) {
+    pidEl.classList.add("dehumidifying");
+    if (humText) humText.textContent = "제습 작동";
+  }
+
+  if (Math.abs(pid.vibOutput) > 0.20) {
+    pidEl.classList.add("damper-on");
+  }
+
+  weatherLayer.className = "dom-weather-layer";
+
+  if (running && envMode.includes("폭염")) {
+    weatherLayer.classList.add("heat");
+    weatherLayer.querySelectorAll("span").forEach(item => item.textContent = "☀");
+  } else if (running && envMode.includes("폭우")) {
+    weatherLayer.classList.add("rain");
+    weatherLayer.querySelectorAll("span").forEach(item => item.textContent = "╱");
+  } else if (running && envMode.includes("폭설")) {
+    weatherLayer.classList.add("snow");
+    weatherLayer.querySelectorAll("span").forEach(item => item.textContent = "❄");
+  } else if (running && envMode.includes("복합")) {
+    weatherLayer.classList.add("rain");
+    weatherLayer.querySelectorAll("span").forEach((item, index) => {
+      item.textContent = index % 2 === 0 ? "☀" : "╱";
+    });
+  } else {
+    weatherLayer.querySelectorAll("span").forEach(item => item.textContent = "");
+  }
+}
+
 function loop(timestamp) {
   if (!lastTimestamp) {
     lastTimestamp = timestamp;
@@ -1432,6 +2001,8 @@ function loop(timestamp) {
   if (experimentPage.classList.contains("active")) {
     drawScene();
     drawGraphs();
+    updateDomVisualLayer();
+    updateDomVisualLayer();
   }
 
   requestAnimationFrame(loop);
@@ -1439,4 +2010,6 @@ function loop(timestamp) {
 
 resizeCanvases();
 resetSimulation();
+ensureDomVisualLayer();
+updateDomVisualLayer();
 requestAnimationFrame(loop);
