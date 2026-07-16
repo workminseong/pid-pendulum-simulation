@@ -1,4 +1,4 @@
-const GAME_JS_VERSION = "GAME_JS_VISIBLE_DOM_BUILDINGS_ACCEL_FINAL_20260716";
+const GAME_JS_VERSION = "GAME_JS_HEAT_RISE_VISUAL_FORCE_FINAL_20260716";
 
 const explainPage = document.getElementById("explainPage");
 const experimentPage = document.getElementById("experimentPage");
@@ -79,6 +79,7 @@ let quakeTimer = 0;
 let screenShake = 0;
 let envModeElapsed = 0;
 let lastEnvModeForTimer = "정상";
+let maxHeatReached = 22;
 
 let particles = [];
 let eventTexts = [];
@@ -206,6 +207,7 @@ function resetSimulation() {
   screenShake = 0;
   envModeElapsed = 0;
   lastEnvModeForTimer = "정상";
+  maxHeatReached = 22;
 
   particles = [];
   eventTexts = [];
@@ -351,6 +353,7 @@ function setEnvironment(name, temp, hum, message, color, particleType) {
   envMode = name;
   envModeElapsed = 0;
   lastEnvModeForTimer = name;
+  maxHeatReached = outsideTemp;
   envTempTarget = temp;
   envHumTarget = hum;
   mainMessage.textContent = message;
@@ -434,6 +437,7 @@ function updateSimulation(dt) {
   if (envMode !== lastEnvModeForTimer) {
     envModeElapsed = 0;
     lastEnvModeForTimer = envMode;
+    maxHeatReached = outsideTemp;
   }
 
   envModeElapsed += dt;
@@ -444,29 +448,43 @@ function updateSimulation(dt) {
   let humSpeed = 0.95;
 
   if (envMode.includes("폭염")) {
-    effectiveTempTarget = envTempTarget + Math.min(22, envModeElapsed * 1.25);
-    tempSpeed = 1.20 + Math.min(2.80, envModeElapsed * 0.08);
+    // 핵심 수정:
+    // 폭염은 특정 온도에서 내려오지 않고, 시간이 지날수록 점점 더 올라간다.
+    // 이를 통해 PID 제어가 어느 순간부터 버거워지는지 실험할 수 있다.
+    effectiveTempTarget = 46 + envModeElapsed * 2.4;
+    effectiveTempTarget = Math.min(effectiveTempTarget, 120);
+    tempSpeed = 1.35 + Math.min(4.20, envModeElapsed * 0.10);
   }
 
   if (envMode.includes("폭설")) {
-    effectiveTempTarget = envTempTarget - Math.min(10, envModeElapsed * 0.55);
-    tempSpeed = 1.15 + Math.min(2.20, envModeElapsed * 0.06);
+    effectiveTempTarget = -12 - Math.min(18, envModeElapsed * 0.9);
+    tempSpeed = 1.20 + Math.min(3.00, envModeElapsed * 0.08);
   }
 
   if (envMode.includes("폭우")) {
-    effectiveHumTarget = Math.min(100, envHumTarget + Math.min(8, envModeElapsed * 0.50));
-    humSpeed = 1.20 + Math.min(2.50, envModeElapsed * 0.07);
+    effectiveHumTarget = Math.min(100, 92 + envModeElapsed * 0.65);
+    humSpeed = 1.30 + Math.min(3.20, envModeElapsed * 0.08);
   }
 
   if (envMode.includes("복합")) {
-    effectiveTempTarget = envTempTarget + Math.min(18, envModeElapsed * 1.00);
-    effectiveHumTarget = Math.min(100, envHumTarget + Math.min(6, envModeElapsed * 0.45));
-    tempSpeed = 1.35 + Math.min(2.60, envModeElapsed * 0.08);
-    humSpeed = 1.25 + Math.min(2.30, envModeElapsed * 0.07);
+    effectiveTempTarget = Math.min(120, 46 + envModeElapsed * 2.1);
+    effectiveHumTarget = Math.min(100, 94 + envModeElapsed * 0.55);
+    tempSpeed = 1.50 + Math.min(4.00, envModeElapsed * 0.10);
+    humSpeed = 1.35 + Math.min(3.00, envModeElapsed * 0.08);
   }
 
-  outsideTemp += (effectiveTempTarget - outsideTemp) * dt * tempSpeed;
-  outsideHum += (effectiveHumTarget - outsideHum) * dt * humSpeed;
+  const nextOutsideTemp = outsideTemp + (effectiveTempTarget - outsideTemp) * dt * tempSpeed;
+  const nextOutsideHum = outsideHum + (effectiveHumTarget - outsideHum) * dt * humSpeed;
+
+  if (envMode.includes("폭염") || envMode.includes("복합")) {
+    // 폭염/복합 재난에서는 외부 온도가 다시 내려가지 않도록 단조 증가 보정
+    maxHeatReached = Math.max(maxHeatReached, nextOutsideTemp);
+    outsideTemp = maxHeatReached;
+  } else {
+    outsideTemp = nextOutsideTemp;
+  }
+
+  outsideHum = nextOutsideHum;
 
   if (quakeTimer > 0) {
     quakeTimer -= dt;
@@ -519,7 +537,7 @@ function addContinuousEnvironmentParticles() {
 }
 
 function updateNormalBuilding(dt) {
-  normal.temp += (outsideTemp - normal.temp) * dt * 0.62;
+  normal.temp += (outsideTemp - normal.temp) * dt * 0.82;
   normal.hum += (outsideHum - normal.hum) * dt * 0.54;
 
   const quakeTorque =
@@ -544,7 +562,7 @@ function updatePidBuilding(dt) {
   const humGainValue = Number(humGain.value);
   const vibGainValue = Number(vibGain.value);
 
-  const naturalTempFlow = (outsideTemp - pid.temp) * 0.11;
+  const naturalTempFlow = (outsideTemp - pid.temp) * 0.18;
   const tempError = targetTemp - pid.temp;
 
   pid.tempIntegral = clamp(pid.tempIntegral + tempError * dt, -22, 22);
@@ -554,8 +572,8 @@ function updatePidBuilding(dt) {
 
   pid.tempOutput = clamp(
     tempGainValue * (0.90 * tempError + 0.075 * pid.tempIntegral + 0.15 * tempDerivative),
-    -9,
-    9
+    -8.5,
+    8.5
   );
 
   pid.temp += (naturalTempFlow + pid.tempOutput) * dt;
@@ -719,6 +737,7 @@ function drawScene() {
   drawEventTexts();
 
   scene.restore();
+  updateDomVisualLayer();
 }
 
 function drawSky(w, h) {
@@ -1532,6 +1551,22 @@ function ensureDomVisualLayer() {
         box-shadow: 0 0 32px rgba(103, 232, 249, 0.35), 0 18px 45px rgba(0, 0, 0, 0.40);
       }
 
+      .dom-heat-meter {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 108px;
+        text-align: center;
+        font-weight: 900;
+        color: #fed7aa;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        opacity: 0;
+      }
+
+      .state-hot .dom-heat-meter {
+        opacity: 1;
+      }
+
       .dom-building-title {
         position: absolute;
         left: 50%;
@@ -1854,7 +1889,7 @@ function ensureDomVisualLayer() {
           <div class="dom-leaf leaf-top"></div>
           <div class="dom-pot"></div>
         </div>
-        <div class="dom-building-title">일반 건물</div>
+        <div class="dom-heat-meter">외부 가열 중</div><div class="dom-building-title">일반 건물</div>
       </div>
 
       <div class="dom-building pid-building" id="pidDomBuilding">
@@ -1878,7 +1913,7 @@ function ensureDomVisualLayer() {
           <div class="dom-leaf leaf-top"></div>
           <div class="dom-pot"></div>
         </div>
-        <div class="dom-building-title">PID 제어 건물</div>
+        <div class="dom-heat-meter">제어 중</div><div class="dom-building-title">PID 제어 건물</div>
       </div>
     `;
 
