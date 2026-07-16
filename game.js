@@ -1,4 +1,4 @@
-const GAME_JS_VERSION = "GAME_JS_PREMIUM_VISUAL_NO_COVER_FINAL_20260716";
+const GAME_JS_VERSION = "GAME_JS_MOLD_LIMIT_HEALTH_FINAL_20260716";
 
 const explainPage = document.getElementById("explainPage");
 const experimentPage = document.getElementById("experimentPage");
@@ -77,6 +77,9 @@ let outsideHum = 45;
 let quake = 0;
 let quakeTimer = 0;
 let screenShake = 0;
+let pidLimitReached = false;
+let rainIntensity = 0;
+let snowIntensity = 0;
 let envModeElapsed = 0;
 let lastEnvModeForTimer = "정상";
 let maxHeatReached = 22;
@@ -208,6 +211,9 @@ function resetSimulation() {
   envModeElapsed = 0;
   lastEnvModeForTimer = "정상";
   maxHeatReached = 22;
+  pidLimitReached = false;
+  rainIntensity = 0;
+  snowIntensity = 0;
 
   particles = [];
   eventTexts = [];
@@ -456,14 +462,24 @@ function updateSimulation(dt) {
     tempSpeed = 1.35 + Math.min(4.20, envModeElapsed * 0.10);
   }
 
-  if (envMode.includes("폭설")) {
-    effectiveTempTarget = -12 - Math.min(18, envModeElapsed * 0.9);
-    tempSpeed = 1.20 + Math.min(3.00, envModeElapsed * 0.08);
+  if (envMode.includes("폭우")) {
+    // 폭우도 시간이 지날수록 빗줄기 속도와 습도 상승 속도가 강해진다.
+    rainIntensity = Math.min(1, envModeElapsed / 24);
+    effectiveHumTarget = Math.min(100, 90 + envModeElapsed * 1.15);
+    humSpeed = 1.45 + Math.min(4.40, envModeElapsed * 0.13);
+  } else {
+    rainIntensity = Math.max(0, rainIntensity - dt * 0.35);
   }
 
-  if (envMode.includes("폭우")) {
-    effectiveHumTarget = Math.min(100, 92 + envModeElapsed * 0.65);
-    humSpeed = 1.30 + Math.min(3.20, envModeElapsed * 0.08);
+  if (envMode.includes("폭설")) {
+    // 폭설도 시간이 지날수록 눈의 속도와 냉각 속도가 강해진다.
+    snowIntensity = Math.min(1, envModeElapsed / 24);
+    effectiveTempTarget = -12 - Math.min(34, envModeElapsed * 1.35);
+    tempSpeed = 1.35 + Math.min(4.20, envModeElapsed * 0.12);
+    effectiveHumTarget = Math.min(98, 78 + envModeElapsed * 0.65);
+    humSpeed = Math.max(humSpeed, 1.10 + Math.min(2.60, envModeElapsed * 0.07));
+  } else {
+    snowIntensity = Math.max(0, snowIntensity - dt * 0.35);
   }
 
   if (envMode.includes("복합")) {
@@ -625,14 +641,48 @@ function updatePidBuilding(dt) {
 }
 
 function updatePlantHealth(building, dt, isPid) {
-  const tempStress = Math.max(0, Math.abs(building.temp - targetTemp) - 4) * (isPid ? 0.34 : 0.90);
-  const humStress = Math.max(0, Math.abs(building.hum - targetHum) - 16) * (isPid ? 0.10 : 0.28);
-  const vibStress = Math.max(0, Math.abs(building.angle) * 57.3 - 7) * (isPid ? 0.08 : 0.22);
+  const tempAbsError = Math.abs(building.temp - targetTemp);
+  const humAbsError = Math.abs(building.hum - targetHum);
+  const vibAbsError = Math.abs(building.angle) * 57.3;
+
+  // PID 제어도 실제로는 무한히 버티지 못한다.
+  // 실험 기준:
+  // - PID 건물 내부 온도가 34℃를 넘거나 8℃ 밑으로 내려가면 식물 피해 시작
+  // - 40℃ 이상 또는 3℃ 이하에서는 피해가 급격히 커짐
+  // - 습도 78% 이상, 22% 이하도 식물에 피해
+  const mildTempLimit = building.temp > 34 || building.temp < 8;
+  const severeTempLimit = building.temp > 40 || building.temp < 3;
+  const extremeTempLimit = building.temp > 46 || building.temp < -2;
+
+  const mildHumLimit = building.hum > 78 || building.hum < 22;
+  const severeHumLimit = building.hum > 88 || building.hum < 14;
+
+  const tempStress =
+    Math.max(0, tempAbsError - 4) * (isPid ? 0.36 : 0.92) +
+    (mildTempLimit ? (isPid ? 1.10 : 1.60) : 0) +
+    (severeTempLimit ? (isPid ? 2.60 : 3.40) : 0) +
+    (extremeTempLimit ? (isPid ? 4.60 : 5.60) : 0);
+
+  const humStress =
+    Math.max(0, humAbsError - 16) * (isPid ? 0.13 : 0.30) +
+    (mildHumLimit ? (isPid ? 0.70 : 1.20) : 0) +
+    (severeHumLimit ? (isPid ? 1.80 : 2.50) : 0);
+
+  const vibStress =
+    Math.max(0, vibAbsError - 7) * (isPid ? 0.08 : 0.22);
 
   const totalStress = tempStress + humStress + vibStress;
-  const recovery = totalStress < 1.25 ? (isPid ? 1.75 : 0.85) : 0;
 
-  building.plantHealth = clamp(building.plantHealth + (recovery - totalStress) * dt, 0, 100);
+  const recovery =
+    totalStress < 1.25
+      ? (isPid ? 1.60 : 0.70)
+      : 0;
+
+  building.plantHealth = clamp(
+    building.plantHealth + (recovery - totalStress) * dt,
+    0,
+    100
+  );
 
   if (building.plantHealth > 72) {
     building.plantMood = "healthy";
@@ -652,6 +702,15 @@ function updatePlantHealth(building, dt, isPid) {
     building.envState = "hot";
   } else {
     building.envState = "normal";
+  }
+
+  if (isPid) {
+    pidLimitReached =
+      severeTempLimit ||
+      extremeTempLimit ||
+      severeHumLimit ||
+      Math.abs(pid.tempOutput) > 8.15 ||
+      Math.abs(pid.humOutput) > 11.2;
   }
 }
 
@@ -1122,6 +1181,37 @@ function drawKoreanSystemLabels(x, y, w, h) {
   scene.fillText("제진장치", x + w / 2, y + h - 20);
 }
 
+
+function drawCanvasPlantHealthBar(x, y, health) {
+  const value = clamp(health, 0, 100);
+  const barW = 74;
+  const barH = 14;
+
+  scene.save();
+
+  scene.fillStyle = "rgba(2, 6, 23, 0.78)";
+  roundRect(scene, x - barW / 2, y, barW, barH, 7);
+  scene.fill();
+
+  if (value > 70) {
+    scene.fillStyle = "#22c55e";
+  } else if (value > 35) {
+    scene.fillStyle = "#facc15";
+  } else {
+    scene.fillStyle = "#ef4444";
+  }
+
+  roundRect(scene, x - barW / 2, y, barW * value / 100, barH, 7);
+  scene.fill();
+
+  scene.fillStyle = "#ffffff";
+  scene.font = "bold 10px Arial";
+  scene.textAlign = "center";
+  scene.fillText(value.toFixed(0) + "%", x, y + 11);
+
+  scene.restore();
+}
+
 function drawPlantInside(x, y, w, h, building, isPid) {
   const px = x + w / 2;
   const py = y + h - 58;
@@ -1176,6 +1266,7 @@ function drawPlantInside(x, y, w, h, building, isPid) {
   scene.font = "bold 11px Arial";
   scene.textAlign = "center";
   scene.fillText(Math.round(health) + "%", 0, 43);
+  drawCanvasPlantHealthBar(0, 52, health);
 
   scene.restore();
 }
@@ -1940,12 +2031,15 @@ function ensureDomVisualLayer() {
         <div class="dom-env-label cold-label">냉해</div>
         <div class="dom-env-label mold-label">곰팡이</div>
         <div class="dom-env-label dry-label">건조</div>
+        <div class="dom-mold-spores"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="dom-mold-spores"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <div class="dom-plant">
           <div class="dom-stem"></div>
           <div class="dom-leaf leaf-left"></div>
           <div class="dom-leaf leaf-right"></div>
           <div class="dom-leaf leaf-top"></div>
           <div class="dom-pot"></div>
+          <div class="dom-plant-health"><div class="dom-plant-health-fill"></div><div class="dom-plant-health-text">100%</div></div>
         </div>
         <div class="dom-heat-meter">외부 가열 중</div><div class="dom-building-title">일반 건물</div>
       </div>
@@ -1971,7 +2065,7 @@ function ensureDomVisualLayer() {
           <div class="dom-leaf leaf-top"></div>
           <div class="dom-pot"></div>
         </div>
-        <div class="dom-heat-meter">제어 중</div><div class="dom-building-title">PID 제어 건물</div>
+        <div class="dom-heat-meter">제어 중</div><div class="pid-limit-badge">PID 한계</div><div class="dom-building-title">PID 제어 건물</div>
       </div>
     `;
 
@@ -2011,6 +2105,57 @@ function plantClass(plantHealth) {
   return "";
 }
 
+
+function updateDomHealthBar(buildingElement, health) {
+  const fill = buildingElement.querySelector(".dom-plant-health-fill");
+  const text = buildingElement.querySelector(".dom-plant-health-text");
+
+  if (!fill || !text) {
+    return;
+  }
+
+  const value = clamp(health, 0, 100);
+
+  fill.style.width = value.toFixed(0) + "%";
+  text.textContent = value.toFixed(0) + "%";
+
+  if (value > 70) {
+    fill.style.background = "linear-gradient(90deg, #22c55e, #84cc16)";
+  } else if (value > 35) {
+    fill.style.background = "linear-gradient(90deg, #f59e0b, #facc15)";
+  } else {
+    fill.style.background = "linear-gradient(90deg, #dc2626, #f97316)";
+  }
+}
+
+function updateMoldIntensity(buildingElement, building) {
+  const spores = buildingElement.querySelectorAll(".dom-mold-spores span");
+
+  if (!spores.length) {
+    return;
+  }
+
+  const moldPower = clamp((building.hum - 68) / 28, 0, 1);
+
+  spores.forEach((spore, index) => {
+    const scale = 0.55 + moldPower * 1.65 + (index % 3) * 0.12;
+    spore.style.opacity = String(0.15 + moldPower * 0.85);
+    spore.style.width = (8 + moldPower * 12 + (index % 4)) + "px";
+    spore.style.height = (8 + moldPower * 12 + (index % 4)) + "px";
+    spore.style.animationDuration = (6.4 - moldPower * 2.8) + "s";
+    spore.style.transform = "scale(" + scale.toFixed(2) + ")";
+  });
+}
+
+function updateWeatherSpeed(weatherLayer) {
+  const intensity = Math.max(rainIntensity, snowIntensity);
+  const duration = Math.max(0.55, 2.4 - intensity * 1.55);
+
+  weatherLayer.style.setProperty("--fall-speed", duration.toFixed(2) + "s");
+
+  weatherLayer.classList.toggle("heavy", intensity > 0.55);
+}
+
 function updateDomVisualLayer() {
   const layer = ensureDomVisualLayer();
 
@@ -2034,6 +2179,10 @@ function updateDomVisualLayer() {
 
   normalEl.className = `dom-building normal-building ${classForEnvState(normal.envState)} ${plantClass(normal.plantHealth)}`;
   pidEl.className = `dom-building pid-building ${classForEnvState(pid.envState)} ${plantClass(pid.plantHealth)}`;
+
+  if (pidLimitReached) {
+    pidEl.classList.add("pid-limit");
+  }
 
   if (pid.tempOutput > 0.22) {
     pidEl.classList.add("heating");
@@ -2059,6 +2208,11 @@ function updateDomVisualLayer() {
     pidEl.classList.add("damper-on");
   }
 
+  updateDomHealthBar(normalEl, normal.plantHealth);
+  updateDomHealthBar(pidEl, pid.plantHealth);
+  updateMoldIntensity(normalEl, normal);
+  updateMoldIntensity(pidEl, pid);
+
   weatherLayer.className = "dom-weather-layer";
 
   if (running && envMode.includes("폭염")) {
@@ -2078,6 +2232,8 @@ function updateDomVisualLayer() {
   } else {
     weatherLayer.querySelectorAll("span").forEach(item => item.textContent = "");
   }
+
+  updateWeatherSpeed(weatherLayer);
 }
 
 function loop(timestamp) {
