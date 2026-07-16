@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>PID 스마트 빌딩 제어 시뮬레이터</title>
-  <!-- VERSION_PID_BUILDING_BIG_CHANGE_PERSIST_BUTTONS_FINAL_20260706 -->
+  <!-- VERSION_PID_BUILDING_FIXED_VIEW_CANVAS_FINAL_20260716 -->
 
   <style>
     * { box-sizing: border-box; }
@@ -103,9 +103,16 @@
     }
 
     .page.active {
-      display: block;
       min-height: calc(100vh - 72px);
       height: auto;
+    }
+
+    .explain-page.active {
+      display: block;
+    }
+
+    .experiment-page.active {
+      display: grid;
     }
 
     .explain-page {
@@ -405,14 +412,11 @@
   <header>
     <div>
       <h1>PID 스마트 빌딩 제어 시뮬레이터</h1>
-      <span class="ver">VERSION_PID_BUILDING_BIG_CHANGE_PERSIST_BUTTONS_FINAL_20260706 · 변화폭 확대 · 지속 환경 · 버튼 재배치 · 곡선형 그래프</span>
+      <span class="ver">VERSION_PID_BUILDING_FIXED_VIEW_CANVAS_FINAL_20260716 · 설명창/실험창 분리 · 캔버스 표시 오류 수정 · 환경 제어 버튼 정리</span>
     </div>
     <div class="top">
       <button id="showExplainBtn" class="blue">설명창 Explanation</button>
       <button id="showExperimentBtn" class="green">실험창 Experiment</button>
-      <button id="startBtn" class="green">실험 시작</button>
-      <button id="pauseBtn" class="gray">일시 정지</button>
-      <button id="resetBtn" class="red">초기화</button>
     </div>
   </header>
 
@@ -506,11 +510,13 @@
             <button id="quakeBtn" class="red">지진 Earthquake</button>
           </div>
           <div class="env-col">
-            <div class="env-col-title">특수 제어</div>
+            <div class="env-col-title">실험 제어</div>
             <button id="megaQuakeBtn" class="red">강진 Strong Quake</button>
             <button id="stressBtn" class="purple">복합 재난 Disaster</button>
             <button id="holdEnvBtn" class="blue">모든 환경 일시 정지</button>
             <button id="experimentResetBtn" class="green">실험 초기화</button>
+            <button id="startBtn" class="green">실험 시작</button>
+            <button id="pauseBtn" class="gray">일시 정지</button>
           </div>
         </div>
         <p class="note">환경은 다른 환경 버튼을 누르기 전까지 계속 유지됩니다. '모든 환경 일시 정지'는 현재 외부 환경 값을 고정하고 지진을 멈춥니다.</p>
@@ -570,7 +576,6 @@
   const dryBtn = document.getElementById("dryBtn");
   const quakeBtn = document.getElementById("quakeBtn");
   const megaQuakeBtn = document.getElementById("megaQuakeBtn");
-  const calmBtn = document.getElementById("calmBtn");
   const stressBtn = document.getElementById("stressBtn");
   const holdEnvBtn = document.getElementById("holdEnvBtn");
   const experimentResetBtn = document.getElementById("experimentResetBtn");
@@ -657,6 +662,8 @@
       experimentPage.classList.add("active");
       explainPage.classList.remove("active");
       resize();
+      drawScene();
+      drawGraphs();
     }
   }
 
@@ -734,6 +741,9 @@
     pauseBtn.textContent = "일시 정지";
     mainMessage.textContent = "실험 진행 중";
     showPage("experiment");
+    resize();
+    drawScene();
+    drawGraphs();
   });
 
   pauseBtn.addEventListener("click", () => {
@@ -763,12 +773,6 @@
 
   quakeBtn.addEventListener("click", () => triggerQuake(1.0));
   megaQuakeBtn.addEventListener("click", () => triggerQuake(1.65));
-
-  calmBtn.addEventListener("click", () => {
-    setEnvironment("정상 Normal", 22, 45, "정상 환경으로 돌아왔습니다.", "#86efac", "calm");
-    quake = 0;
-    quakeTimer = 0;
-  });
 
   stressBtn.addEventListener("click", () => {
     setEnvironment("복합 재난 Disaster", 46, 98, "복합 재난 지속: 폭염 + 폭우 + 강진이 동시에 유지됩니다.", "#facc15", "stress");
