@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PID 스마트 빌딩 제어 시뮬레이터</title>
-  <!-- VERSION_PID_BUILDING_UI_RESTORE_SCROLL_FIXED_FINAL_20260716 -->
+  <!-- VERSION_PID_BUILDING_VISUAL_RESTORE_UI_KEEP_FINAL_20260716 -->
   <style>
     * { box-sizing: border-box; }
     :root {
@@ -251,6 +251,25 @@
       }
     }
 
+  
+    /* 설명창에 실험 HUD가 섞여 보이지 않도록 실험창 내부에서만 상태 리본 표시 */
+    #explainPage .status-ribbon {
+      display: none !important;
+    }
+
+    #experimentPage .status-ribbon {
+      display: flex !important;
+    }
+
+    /* 시각 효과가 어둡게 묻히지 않도록 캔버스 영역 대비 보정 */
+    .canvas-box {
+      background: #07111f !important;
+    }
+
+    .graph-box {
+      background: #07111f !important;
+    }
+
   </style>
 </head>
 <body>
@@ -258,7 +277,7 @@
   <header>
     <div>
       <h1>PID 스마트 빌딩 제어 시뮬레이터</h1>
-      <span class="ver">VERSION_PID_BUILDING_UI_RESTORE_SCROLL_FIXED_FINAL_20260716 · 원래 UI 복구 · 설명창 표시 복구 · 실험창 스크롤 수정 · 환경 버튼 작동 유지</span>
+      <span class="ver">VERSION_PID_BUILDING_VISUAL_RESTORE_UI_KEEP_FINAL_20260716 · UI 유지 · 설명창 혼입 제거 · 환경 시각화 복구 · 온도 변화 가속</span>
     </div>
     <div class="top">
       <button id="showExplainBtn" class="blue">설명창 Explanation</button>
@@ -1553,6 +1572,12 @@
 
   const internalCheckReady = hasEnoughInternalChecks();
 
+  function setTextSafe(element, value) {
+    if (element) {
+      element.textContent = value;
+    }
+  }
+
   const targetTemp = 22;
   const targetHum = 45;
   let running = false;
@@ -1714,9 +1739,12 @@
     envTempTarget = temp;
     envHumTarget = hum;
     mainMessage.textContent = message;
+    ensureRunning();
+    resize();
     addEventText(message, color);
     addWeatherParticles(particleType);
-    ensureRunning();
+    drawScene();
+    drawGraphs();
   }
   function triggerQuake(power) {
     ensureRunning();
@@ -1729,26 +1757,29 @@
     pid.angle += dir * 0.08 * power;
     pid.angularVelocity += dir * 1.20 * power;
     mainMessage.textContent = "지진 상황: 일반 건물과 PID 건물의 기울기 차이를 보세요";
+    resize();
     addEventText(power > 1.2 ? "강진 발생" : "지진 발생", "#f87171");
     addWeatherParticles("quake");
+    drawScene();
+    drawGraphs();
   }
   function addEventText(text, color) {
     eventTexts.push({ text, color, x:Math.max(1,canvas.width)/2, y:Math.max(1,canvas.height)*.18, life:1.7, vy:-24 });
   }
   function addWeatherParticles(type) {
     const w = Math.max(1, canvas.width), h = Math.max(1, canvas.height);
-    for (let i=0;i<60;i++) {
+    for (let i=0;i<120;i++) {
       particles.push({
         type, x:Math.random()*w, y:Math.random()*h*.58,
-        vx:(Math.random()-.5)*70, vy:30+Math.random()*65, life:1.4+Math.random()*1.4
+        vx:(Math.random()-.5)*120, vy:45+Math.random()*110, life:3.8+Math.random()*2.6
       });
     }
   }
   function updateSimulation(dt) {
     if (!running || paused) return;
     time += dt;
-    outsideTemp += (envTempTarget - outsideTemp) * dt * .65;
-    outsideHum += (envHumTarget - outsideHum) * dt * .60;
+    outsideTemp += (envTempTarget - outsideTemp) * dt * 1.05;
+    outsideHum += (envHumTarget - outsideHum) * dt * 0.95;
     if (quakeTimer > 0) { quakeTimer -= dt; quake = Math.max(0, quakeTimer / 8.2); }
     else { quake += (0 - quake) * dt * .55; }
     updateNormalBuilding(dt);
@@ -1761,8 +1792,8 @@
     if (screenShake < .2) screenShake = 0;
   }
   function updateNormalBuilding(dt) {
-    normal.temp += (outsideTemp - normal.temp) * dt * .22;
-    normal.hum += (outsideHum - normal.hum) * dt * .20;
+    normal.temp += (outsideTemp - normal.temp) * dt * 0.42;
+    normal.hum += (outsideHum - normal.hum) * dt * 0.36;
     const quakeTorque = Math.sin(time*16)*quake*3.7 + Math.sin(time*28)*quake*1.7 + Math.sin(time*48)*quake*.8;
     normal.angularVelocity += quakeTorque * dt;
     normal.angularVelocity += -normal.angle * 3.2 * dt;
@@ -1778,14 +1809,14 @@
     const tempGainValue = Number(tempGain.value);
     const humGainValue = Number(humGain.value);
     const vibGainValue = Number(vibGain.value);
-    const naturalTempFlow = (outsideTemp - pid.temp) * .075;
+    const naturalTempFlow = (outsideTemp - pid.temp) * 0.11;
     const tempError = targetTemp - pid.temp;
     pid.tempIntegral = clamp(pid.tempIntegral + tempError * dt, -22, 22);
     const tempDerivative = (tempError - pid.prevTempError) / Math.max(dt, .001);
     pid.prevTempError = tempError;
     pid.tempOutput = clamp(tempGainValue * (.90*tempError + .075*pid.tempIntegral + .15*tempDerivative), -9, 9);
     pid.temp += (naturalTempFlow + pid.tempOutput) * dt;
-    const naturalHumFlow = (outsideHum - pid.hum) * .070;
+    const naturalHumFlow = (outsideHum - pid.hum) * 0.10;
     const humError = targetHum - pid.hum;
     pid.humIntegral = clamp(pid.humIntegral + humError * dt, -75, 75);
     const humDerivative = (humError - pid.prevHumError) / Math.max(dt, .001);
@@ -1843,10 +1874,10 @@
     humPower.textContent = Math.round(Math.abs(pid.humOutput)/12*100) + "%";
     vibPower.textContent = Math.round(Math.abs(pid.vibOutput)/9*100) + "%";
     protectText.textContent = Math.max(0, Math.round(pid.plantHealth - normal.plantHealth));
-    envModeChip.textContent = envMode;
-    outsideTempChip.textContent = outsideTemp.toFixed(1) + "℃";
-    outsideHumChip.textContent = outsideHum.toFixed(0) + "%";
-    quakeChip.textContent = quake.toFixed(2);
+    setTextSafe(envModeChip, envMode);
+    setTextSafe(outsideTempChip, outsideTemp.toFixed(1) + "℃");
+    setTextSafe(outsideHumChip, outsideHum.toFixed(0) + "%");
+    setTextSafe(quakeChip, quake.toFixed(2));
     updateLabels();
   }
   function drawScene() {
