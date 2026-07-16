@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>PID 스마트 빌딩 제어 시뮬레이터</title>
-  <!-- VERSION_PID_BUILDING_FIXED_VIEW_CANVAS_FINAL_20260716 -->
+  <!-- VERSION_PID_BUILDING_TRUE_PAGE_ENV_RUN_FINAL_20260716 -->
 
   <style>
     * { box-sizing: border-box; }
@@ -30,7 +30,7 @@
       margin: 0;
       min-height: 100vh;
       overflow-x: hidden;
-      overflow-y: auto;
+      overflow-y: hidden;
       background:
         radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 35%),
         radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 34%),
@@ -40,10 +40,9 @@
     }
 
     .app {
-      min-height: 100vh;
-      height: auto;
+      height: 100vh;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: 72px 1fr;
     }
 
     header {
@@ -98,14 +97,28 @@
     .blue { background: #2563eb; }
 
     .page {
-      min-height: 0;
-      display: none;
+      display: none !important;
+      min-height: calc(100vh - 72px);
     }
 
-    .page.active {
+    .page {
+      display: none !important;
       min-height: calc(100vh - 72px);
-      height: auto;
     }
+
+    .explain-page.active {
+      display: block !important;
+      min-height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+
+    .experiment-page.active {
+      display: grid !important;
+      min-height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+
+
 
     .explain-page.active {
       display: block;
@@ -130,12 +143,9 @@
     }
 
     .experiment-page {
-      min-height: calc(100vh - 72px);
-      height: auto;
-      display: grid;
-      grid-template-rows: minmax(640px, 70vh) auto;
+      height: calc(100vh - 72px);
+      grid-template-rows: minmax(620px, 70vh) auto;
       background: #020617;
-      overflow: visible;
     }
 
     .card {
@@ -287,7 +297,7 @@
 
     .stage {
       position: relative;
-      min-height: 640px;
+      min-height: 620px;
       overflow: hidden;
       display: grid;
       grid-template-columns: minmax(520px, 1.05fr) minmax(560px, 1fr);
@@ -296,13 +306,13 @@
 
     .canvas-box {
       position: relative;
-      min-height: 640px;
+      min-height: 620px;
       border-right: 1px solid #2b3c58;
     }
 
     .graph-box {
       position: relative;
-      min-height: 640px;
+      min-height: 620px;
       background: rgba(7, 17, 31, 0.96);
     }
 
@@ -404,7 +414,12 @@
       .canvas-box { border-right: none; border-bottom: 1px solid #2b3c58; }
       .controls { grid-template-columns: 1fr; }
     }
-  </style>
+  
+    .page { display: none !important; }
+    #explainPage.active { display: block !important; }
+    #experimentPage.active { display: grid !important; }
+    body:has(#explainPage.active) #experimentPage { display: none !important; }
+    </style>
 </head>
 
 <body>
@@ -412,7 +427,7 @@
   <header>
     <div>
       <h1>PID 스마트 빌딩 제어 시뮬레이터</h1>
-      <span class="ver">VERSION_PID_BUILDING_FIXED_VIEW_CANVAS_FINAL_20260716 · 설명창/실험창 분리 · 캔버스 표시 오류 수정 · 환경 제어 버튼 정리</span>
+      <span class="ver">VERSION_PID_BUILDING_TRUE_PAGE_ENV_RUN_FINAL_20260716 · 설명창/실험창 완전 분리 · 환경 버튼 즉시 실행 · 실험 자동 시작 버튼 제거</span>
     </div>
     <div class="top">
       <button id="showExplainBtn" class="blue">설명창 Explanation</button>
@@ -515,11 +530,10 @@
             <button id="stressBtn" class="purple">복합 재난 Disaster</button>
             <button id="holdEnvBtn" class="blue">모든 환경 일시 정지</button>
             <button id="experimentResetBtn" class="green">실험 초기화</button>
-            <button id="startBtn" class="green">실험 시작</button>
             <button id="pauseBtn" class="gray">일시 정지</button>
           </div>
         </div>
-        <p class="note">환경은 다른 환경 버튼을 누르기 전까지 계속 유지됩니다. '모든 환경 일시 정지'는 현재 외부 환경 값을 고정하고 지진을 멈춥니다.</p>
+        <p class="note">환경 버튼을 누르는 순간 실험이 바로 시작됩니다. 다른 환경 버튼을 누르기 전까지 현재 환경이 계속 유지됩니다.</p>
       </div>
 
       <div class="ctrl">
@@ -563,8 +577,6 @@
   const ctx = canvas.getContext("2d");
   const graphCanvas = document.getElementById("graphCanvas");
   const gtx = graphCanvas.getContext("2d");
-
-  const startBtn = document.getElementById("startBtn");
   const pauseBtn = document.getElementById("pauseBtn");
   const resetBtn = document.getElementById("resetBtn");
 
@@ -579,7 +591,6 @@
   const stressBtn = document.getElementById("stressBtn");
   const holdEnvBtn = document.getElementById("holdEnvBtn");
   const experimentResetBtn = document.getElementById("experimentResetBtn");
-
   const tempGain = document.getElementById("tempGain");
   const humGain = document.getElementById("humGain");
   const vibGain = document.getElementById("vibGain");
@@ -655,15 +666,20 @@
   }
 
   function showPage(name) {
+    explainPage.classList.remove("active");
+    experimentPage.classList.remove("active");
+
     if (name === "explain") {
       explainPage.classList.add("active");
-      experimentPage.classList.remove("active");
+      window.scrollTo(0, 0);
     } else {
       experimentPage.classList.add("active");
-      explainPage.classList.remove("active");
-      resize();
-      drawScene();
-      drawGraphs();
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => {
+        resize();
+        drawScene();
+        drawGraphs();
+      });
     }
   }
 
@@ -735,17 +751,6 @@
 
   [tempGain, humGain, vibGain].forEach(input => input.addEventListener("input", updateLabels));
 
-  startBtn.addEventListener("click", () => {
-    running = true;
-    paused = false;
-    pauseBtn.textContent = "일시 정지";
-    mainMessage.textContent = "실험 진행 중";
-    showPage("experiment");
-    resize();
-    drawScene();
-    drawGraphs();
-  });
-
   pauseBtn.addEventListener("click", () => {
     if (!running) return;
     paused = !paused;
@@ -794,9 +799,13 @@
   experimentResetBtn.addEventListener("click", () => {
     resetSimulation();
     showPage("experiment");
+    drawScene();
+    drawGraphs();
   });
 
+
   function ensureRunning() {
+    showPage("experiment");
     running = true;
     paused = false;
     pauseBtn.textContent = "일시 정지";
@@ -810,6 +819,9 @@
     mainMessage.textContent = message;
     if (particleType !== "calm") addWeatherParticles(particleType);
     ensureRunning();
+    resize();
+    drawScene();
+    drawGraphs();
   }
 
   function triggerQuake(power) {
@@ -830,6 +842,9 @@
     addEventText(power > 1.2 ? "강진 발생: 일반 건물 큰 기울기!" : "지진 발생: 건물 기울어짐!", "#f87171");
     mainMessage.textContent = "지진 상황: 일반 건물과 PID 건물의 기울기 차이를 보세요";
     addWeatherParticles("quake");
+    resize();
+    drawScene();
+    drawGraphs();
   }
 
   function addEventText(text, color) {
