@@ -464,3 +464,37 @@ input[type="range"] {
     min-height: 460px;
   }
 }
+
+
+/* =========================================================
+   FINAL VISUAL FORCE PATCH
+   - GitHub Pages에서 canvas 그림이 밀리거나 이전 캐시가 남아도
+     DOM 건물 레이어가 반드시 위에 보이도록 강제
+   ========================================================= */
+
+.canvas-panel {
+  isolation: isolate;
+}
+
+.canvas-panel canvas {
+  position: relative;
+  z-index: 0;
+}
+
+.dom-visual-layer {
+  z-index: 10 !important;
+}
+
+.hud,
+.status-ribbon {
+  z-index: 20 !important;
+}
+
+.dom-building {
+  will-change: transform;
+}
+
+.dom-weather-layer {
+  z-index: 9 !important;
+}
+
