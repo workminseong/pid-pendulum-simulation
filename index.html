@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PID 스마트 빌딩 제어 시뮬레이터</title>
-  <!-- VERSION_PID_BUILDING_1800LINE_WORKING_FINAL_20260716 -->
+  <!-- VERSION_PID_BUILDING_SCROLL_VISIBLE_FINAL_20260716 -->
   <style>
     * { box-sizing: border-box; }
     :root {
@@ -14,16 +14,21 @@
       --cyan:#22d3ee; --lime:#86efac; --yellow:#facc15;
     }
     body {
-      margin:0; height:100vh; overflow:hidden; color:var(--text);
-      font-family:Arial,"Noto Sans KR",sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      color: var(--text);
+      font-family: Arial,"Noto Sans KR",sans-serif;
       background:radial-gradient(circle at top left,rgba(96,165,250,.16),transparent 34%),
                  radial-gradient(circle at top right,rgba(34,211,238,.10),transparent 34%),
                  var(--bg);
     }
-    .app { height:100vh; display:grid; grid-template-rows:72px 1fr; }
-    header {
-      display:flex; align-items:center; justify-content:space-between; gap:14px;
-      padding:12px 20px; background:rgba(4,10,20,.96); border-bottom:1px solid var(--line);
+    .app {
+      min-height: 100vh;
+      height: auto;
+      display: grid;
+      grid-template-rows: auto 1fr;
     }
     h1 { margin:0; font-size:24px; letter-spacing:-.5px; }
     .ver { display:block; margin-top:5px; color:#9cc4ff; font-size:13px; }
@@ -36,14 +41,10 @@
     .green{background:var(--green)} .red{background:var(--red)} .gray{background:var(--gray)}
     .orange{background:var(--orange)} .purple{background:var(--purple)} .blue{background:var(--blue)}
 
-    .page { display:none; height:calc(100vh - 72px); min-height:0; }
-    #explainPage.active { display:block; overflow:auto; }
-    #experimentPage.active { display:grid; grid-template-rows:minmax(560px,1fr) auto; overflow:hidden; background:#020617; }
-
-    .explain-wrap { max-width:1180px; margin:0 auto; padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .card {
-      background:rgba(23,36,58,.97); border:1px solid var(--line); border-radius:18px;
-      padding:16px; margin-bottom:14px; box-shadow:0 14px 32px rgba(0,0,0,.2);
+    .page {
+      display: none;
+      min-height: calc(100vh - 72px);
+      height: auto;
     }
     .card h2 { margin:0 0 10px; color:#dbeafe; font-size:20px; }
     .card h3 { margin:14px 0 6px; color:#bfdbfe; font-size:16px; }
@@ -53,42 +54,12 @@
     .concept span { color:#dbeafe; line-height:1.5; font-size:14px; }
     .p{color:#fb923c}.i{color:#c084fc}.d{color:#22d3ee}
 
-    .stage { min-height:0; display:grid; grid-template-columns:minmax(520px,1.04fr) minmax(560px,1fr); border-bottom:1px solid var(--line); }
-    .canvas-box,.graph-box { position:relative; min-height:0; background:#07111f; }
-    .canvas-box { border-right:1px solid var(--line); }
-    canvas { width:100%; height:100%; display:block; }
-    .hud { position:absolute; top:18px; left:18px; right:18px; display:flex; justify-content:space-between; gap:12px; pointer-events:none; }
-    .pill,.tag { background:rgba(15,23,42,.84); border:1px solid #334155; border-radius:999px; padding:8px 12px; color:#e2e8f0; font-size:13px; backdrop-filter:blur(8px); }
-    .legend { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
-    .tag { padding:6px 9px; font-size:12px; }
-    .normal{color:#fca5a5}.pid{color:#86efac}
-
-    .controls { display:grid; grid-template-columns:1.18fr 1fr 1.16fr; gap:10px; padding:12px; background:rgba(15,23,42,.98); }
-    .ctrl { min-width:0; padding:12px; background:#111c2e; border:1px solid var(--line); border-radius:16px; }
-    .ctrl h3 { margin:0 0 9px; color:#dbeafe; font-size:15px; }
-    .env-columns { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .env-col { display:grid; gap:8px; }
-    .env-col-title { color:#bfdbfe; font-size:12px; font-weight:900; text-align:center; margin-bottom:2px; }
-    .env-col button { min-height:44px; font-size:13px; }
-    .ctrl label { display:block; margin-top:8px; color:#cbd5e1; font-size:12px; font-weight:900; }
-    .ctrl label span { float:right; color:#86efac; }
-    input[type=range] { width:100%; accent-color:#60a5fa; }
-    .note { margin:10px 0 0; padding:9px; background:#0b1220; border-radius:10px; color:#cbd5e1; font-size:12px; line-height:1.45; }
-    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-    .result-box { border:1px solid #334155; background:#020617; border-radius:12px; padding:8px; text-align:center; }
-    .result-box span { display:block; color:#94a3b8; font-size:11px; margin-bottom:3px; }
-    .result-box strong { font-size:18px; }
-
-    @media(max-width:1100px) {
-      body { overflow:auto; height:auto; }
-      .app { height:auto; min-height:100vh; grid-template-rows:auto 1fr; }
-      header { flex-direction:column; align-items:flex-start; height:auto; position:sticky; top:0; z-index:20; }
-      .page { height:auto; min-height:calc(100vh - 72px); }
-      #experimentPage.active { grid-template-rows:auto auto; overflow:visible; }
-      .explain-wrap { grid-template-columns:1fr; }
-      .stage { grid-template-columns:1fr; grid-template-rows:560px 520px; min-height:1080px; }
-      .canvas-box { border-right:0; border-bottom:1px solid var(--line); }
-      .controls { grid-template-columns:1fr; }
+    .stage {
+      min-height: 560px;
+      height: auto;
+      display: grid;
+      grid-template-columns: minmax(520px,1.04fr) minmax(560px,1fr);
+      border-bottom: 1px solid var(--line);
     }
   
     .status-ribbon {
@@ -142,6 +113,77 @@
       line-height: 1.45;
     }
 
+  
+    .bottom-safe-space {
+      height: 72px;
+      flex: 0 0 auto;
+    }
+
+    @media(max-height: 820px) {
+      #experimentPage.active {
+        grid-template-rows: minmax(500px, 60vh) auto;
+      }
+
+      .stage {
+        min-height: 500px;
+      }
+
+      .canvas-box,.graph-box {
+        min-height: 500px;
+      }
+    }
+  
+    /* 최종 레이아웃 강제 보정: 실험창이 화면 아래에 잘리지 않도록 함 */
+    body {
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      height: auto !important;
+      min-height: 100vh !important;
+    }
+
+    .app {
+      height: auto !important;
+      min-height: 100vh !important;
+      grid-template-rows: auto 1fr !important;
+    }
+
+    #experimentPage.active {
+      display: grid !important;
+      grid-template-rows: minmax(560px, 66vh) auto !important;
+      height: auto !important;
+      min-height: calc(100vh - 72px) !important;
+      overflow: visible !important;
+      padding-bottom: 84px !important;
+    }
+
+    .stage {
+      min-height: 560px !important;
+      height: auto !important;
+    }
+
+    .canvas-box,
+    .graph-box {
+      min-height: 560px !important;
+      height: auto !important;
+    }
+
+    .controls {
+      position: relative !important;
+      z-index: 10 !important;
+    }
+
+    @media(max-height: 820px) {
+      #experimentPage.active {
+        grid-template-rows: minmax(500px, 60vh) auto !important;
+      }
+
+      .stage,
+      .canvas-box,
+      .graph-box {
+        min-height: 500px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -149,7 +191,7 @@
   <header>
     <div>
       <h1>PID 스마트 빌딩 제어 시뮬레이터</h1>
-      <span class="ver">VERSION_PID_BUILDING_1800LINE_WORKING_FINAL_20260716 · 1800줄 이상 확장 안정판 · 환경 버튼 즉시 작동 · 건물/그래프 표시 복구</span>
+      <span class="ver">VERSION_PID_BUILDING_SCROLL_VISIBLE_FINAL_20260716 · 스크롤/화면 잘림 수정 · 환경 버튼 즉시 작동 · 건물/그래프 표시 유지</span>
     </div>
     <div class="top">
       <button id="showExplainBtn" class="blue">설명창 Explanation</button>
@@ -268,6 +310,7 @@
         <button id="goExplainFromExperiment" class="blue" style="width:100%;margin-top:10px;">설명창으로 이동 Back to Explanation</button>
       </div>
     </div>
+    <div class="bottom-safe-space"></div>
   </section>
 </div>
 
